@@ -1,6 +1,16 @@
 "use client";
 
-import { CheckCheck, ChevronRight, Download, Plus, Redo2, Undo2, Upload } from "lucide-react";
+import {
+  CheckCheck,
+  ChevronRight,
+  Download,
+  PanelRightClose,
+  PanelRightOpen,
+  Plus,
+  Redo2,
+  Undo2,
+  Upload,
+} from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useStore } from "zustand";
 import { buildBreadcrumbs } from "@/lib/navigation";
@@ -15,7 +25,12 @@ const statusLabel = {
   error: "WebMCP error",
 } as const;
 
-export function Topbar() {
+interface TopbarProps {
+  isInspectorOpen: boolean;
+  onToggleInspector: () => void;
+}
+
+export function Topbar({ isInspectorOpen, onToggleInspector }: TopbarProps) {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const webmcpStatus = useWorkspaceStore((state) => state.webmcpStatus);
   const activateMap = useWorkspaceStore((state) => state.activateMap);
@@ -94,6 +109,17 @@ export function Topbar() {
           />
           <button aria-label="Export workspace" className="icon-button" onClick={() => downloadWorkspace(workspace)} type="button">
             <Download size={16} />
+          </button>
+          <button
+            aria-controls="inspector-panel"
+            aria-expanded={isInspectorOpen}
+            aria-label={isInspectorOpen ? "Close inspector" : "Open inspector"}
+            className={`icon-button inspector-toggle ${isInspectorOpen ? "active" : ""}`}
+            onClick={onToggleInspector}
+            title={isInspectorOpen ? "Close inspector" : "Open inspector"}
+            type="button"
+          >
+            {isInspectorOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
           </button>
         </div>
       </div>

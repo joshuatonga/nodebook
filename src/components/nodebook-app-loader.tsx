@@ -18,7 +18,6 @@ function AppSkeleton() {
           <p>Opening your local workspace…</p>
         </div>
       </div>
-      <div className="skeleton-inspector" />
     </div>
   );
 }

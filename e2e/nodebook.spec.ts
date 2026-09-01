@@ -22,8 +22,11 @@ test("first launch is a blank agent-ready workspace with an unsupported fallback
 test("demo supports scope review, trace intent, linked maps, undo, and reload persistence", async ({ page }) => {
   await page.getByRole("button", { name: "Load source-backed demo" }).click();
   await expect(page.getByText("MyFitnessPal-style tracker")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Inspector" })).not.toBeVisible();
 
   await page.getByText("Meal planner", { exact: true }).click();
+  await page.getByRole("button", { name: "Open inspector" }).click();
+  await expect(page.getByRole("complementary", { name: "Inspector" })).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept("A weekly planner is outside the first release."));
   await page.getByLabel("Scope").selectOption("excluded");
   await expect(page.getByText("excluded", { exact: true })).toBeVisible();
