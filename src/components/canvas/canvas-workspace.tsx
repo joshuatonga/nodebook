@@ -26,13 +26,13 @@ import { useWorkspaceStore } from "@/lib/store";
 const nodeTypes = { semantic: SemanticNode };
 
 function colorForKind(kind: string): string {
-  if (kind === "project") return "#1f2d26";
-  if (kind === "group") return "#8c7149";
-  if (kind === "feature") return "#528061";
-  if (kind === "step") return "#587891";
-  if (kind === "concept") return "#75659a";
-  if (kind === "question") return "#b07450";
-  return "#81837d";
+  if (kind === "project") return "var(--chart-5)";
+  if (kind === "group") return "var(--chart-1)";
+  if (kind === "feature") return "var(--chart-4)";
+  if (kind === "step") return "var(--chart-2)";
+  if (kind === "concept") return "var(--chart-3)";
+  if (kind === "question") return "var(--chart-1)";
+  return "var(--ring)";
 }
 
 function CanvasInner() {
@@ -100,9 +100,9 @@ function CanvasInner() {
         label: edge.label,
         type: "smoothstep",
         animated: highlight?.nodeIds.includes(edge.source) && highlight.nodeIds.includes(edge.target),
-        markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "#90948c" },
-        style: { stroke: "#a4a79f", strokeWidth: 1.35 },
-        labelStyle: { fontSize: 10, fill: "#72766f" },
+        markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "var(--muted-foreground)" },
+        style: { stroke: "var(--border-strong)", strokeWidth: 1.35 },
+        labelStyle: { fontSize: 10, fill: "var(--muted-foreground)" },
       })),
     [highlight, mapEdges],
   );
@@ -164,9 +164,9 @@ function CanvasInner() {
       snapGrid={[12, 12]}
       snapToGrid
     >
-      <Background color="#d9dbd5" gap={22} size={1} variant={BackgroundVariant.Dots} />
+      <Background color="var(--border)" gap={22} size={1} variant={BackgroundVariant.Dots} />
       <MiniMap
-        maskColor="rgba(247, 247, 243, 0.82)"
+        maskColor="color-mix(in oklch, var(--background) 82%, transparent)"
         nodeColor={(node) => colorForKind((node.data as SemanticFlowNode["data"]).node.kind)}
         nodeStrokeWidth={2}
         pannable
