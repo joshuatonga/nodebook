@@ -16,7 +16,7 @@ import {
   type NodeChange,
   type OnMoveEnd,
 } from "@xyflow/react";
-import { Focus, LayoutDashboard, Sparkles, X } from "lucide-react";
+import { Focus, LayoutDashboard, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SemanticNode, type SemanticFlowNode } from "@/components/canvas/semantic-node";
 import { layoutNodes } from "@/lib/layout";
@@ -190,7 +190,6 @@ function CanvasInner() {
       </Panel>
       {mapNodes.length === 0 ? (
         <Panel className="empty-canvas" position="top-center">
-          <span className="empty-icon"><Sparkles size={19} /></span>
           <span className="eyebrow">Blank workspace</span>
           <h1>Map a product with your agent.</h1>
           <p>Ask your external agent to research the product, then let it create a durable, cited map here through WebMCP.</p>

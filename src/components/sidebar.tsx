@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Boxes, Clock3, GitBranch, GraduationCap, Plus, Sparkles } from "lucide-react";
+import { BookOpen, Boxes, Clock3, GitBranch, GraduationCap, Plus } from "lucide-react";
 import { useMemo } from "react";
 import type { MapKind } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
@@ -91,7 +91,7 @@ export function Sidebar() {
           <Plus size={15} /> New
         </button>
         <button className="quiet-button accent" onClick={loadDemoWorkspace} type="button">
-          <Sparkles size={15} /> Load demo
+          Load demo
         </button>
       </div>
       <div className="local-note">

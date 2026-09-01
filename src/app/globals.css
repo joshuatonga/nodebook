@@ -831,7 +831,6 @@ button:disabled {
   text-align: center;
 }
 
-.empty-icon,
 .inspector-empty-icon {
   display: inline-grid;
   width: 38px;
