@@ -4,6 +4,8 @@ import {
   CheckCheck,
   ChevronRight,
   Download,
+  PanelLeftClose,
+  PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
   Plus,
@@ -27,10 +29,12 @@ const statusLabel = {
 
 interface TopbarProps {
   isInspectorOpen: boolean;
+  isSidebarOpen: boolean;
   onToggleInspector: () => void;
+  onToggleSidebar: () => void;
 }
 
-export function Topbar({ isInspectorOpen, onToggleInspector }: TopbarProps) {
+export function Topbar({ isInspectorOpen, isSidebarOpen, onToggleInspector, onToggleSidebar }: TopbarProps) {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const webmcpStatus = useWorkspaceStore((state) => state.webmcpStatus);
   const activateMap = useWorkspaceStore((state) => state.activateMap);
@@ -60,20 +64,33 @@ export function Topbar({ isInspectorOpen, onToggleInspector }: TopbarProps) {
   return (
     <header className="topbar">
       <div className="topbar-primary">
-        <div className="breadcrumbs" aria-label="Map breadcrumbs">
-          {breadcrumbs.map((crumb, index) => (
-            <span className="breadcrumb-segment" key={crumb.id}>
-              {index > 0 ? <ChevronRight size={13} /> : null}
-              <button
-                disabled={!crumb.mapId}
-                onClick={() => crumb.mapId && activateMap(crumb.mapId)}
-                title={crumb.label}
-                type="button"
-              >
-                {crumb.label}
-              </button>
-            </span>
-          ))}
+        <div className="topbar-leading">
+          <button
+            aria-controls="workspace-sidebar"
+            aria-expanded={isSidebarOpen}
+            aria-label={isSidebarOpen ? "Close navigation" : "Open navigation"}
+            className="icon-button sidebar-toggle"
+            onClick={onToggleSidebar}
+            title={isSidebarOpen ? "Close navigation" : "Open navigation"}
+            type="button"
+          >
+            {isSidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+          </button>
+          <div className="breadcrumbs" aria-label="Map breadcrumbs">
+            {breadcrumbs.map((crumb, index) => (
+              <span className="breadcrumb-segment" key={crumb.id}>
+                {index > 0 ? <ChevronRight size={13} /> : null}
+                <button
+                  disabled={!crumb.mapId}
+                  onClick={() => crumb.mapId && activateMap(crumb.mapId)}
+                  title={crumb.label}
+                  type="button"
+                >
+                  {crumb.label}
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
         <div className="topbar-actions">
           <div className={`webmcp-status ${webmcpStatus}`} title="External agents discover Nodebook tools through the browser">
@@ -114,7 +131,7 @@ export function Topbar({ isInspectorOpen, onToggleInspector }: TopbarProps) {
             aria-controls="inspector-panel"
             aria-expanded={isInspectorOpen}
             aria-label={isInspectorOpen ? "Close inspector" : "Open inspector"}
-            className={`icon-button inspector-toggle ${isInspectorOpen ? "active" : ""}`}
+            className="icon-button inspector-toggle"
             onClick={onToggleInspector}
             title={isInspectorOpen ? "Close inspector" : "Open inspector"}
             type="button"

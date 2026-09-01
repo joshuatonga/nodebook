@@ -17,6 +17,12 @@ test("first launch is a blank agent-ready workspace with an unsupported fallback
   await expect(page.getByRole("heading", { name: "Map a product with your agent." })).toBeVisible();
   await expect(page.getByText("Research MyFitnessPal and map the features we’d need for a clone.")).toBeVisible();
   await expect(page.getByText("WebMCP unavailable")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Workspace navigation" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Close navigation" }).click();
+  await expect(page.getByRole("complementary", { name: "Workspace navigation" })).not.toBeVisible();
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(page.getByRole("complementary", { name: "Workspace navigation" })).toBeVisible();
 });
 
 test("demo supports scope review, trace intent, linked maps, undo, and reload persistence", async ({ page }) => {

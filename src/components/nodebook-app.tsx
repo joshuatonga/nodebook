@@ -14,6 +14,7 @@ export function NodebookApp() {
   useWorkspacePersistence();
   useWebMcp();
   const hydrated = useWorkspaceStore((state) => state.hydrated);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
@@ -29,11 +30,35 @@ export function NodebookApp() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="nodebook-app">
-        <Sidebar />
+        <motion.div
+          animate={{ width: isSidebarOpen ? 238 : 0 }}
+          aria-hidden={!isSidebarOpen}
+          className="sidebar-shell"
+          id="workspace-sidebar"
+          initial={false}
+          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <AnimatePresence initial={false}>
+            {isSidebarOpen ? (
+              <motion.div
+                animate={{ opacity: 1, x: 0 }}
+                className="sidebar-motion-panel"
+                exit={{ opacity: 0, x: -24 }}
+                initial={{ opacity: 0, x: -24 }}
+                key="sidebar"
+                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
+              >
+                <Sidebar />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </motion.div>
         <section className="workspace-stage">
           <Topbar
             isInspectorOpen={isInspectorOpen}
+            isSidebarOpen={isSidebarOpen}
             onToggleInspector={() => setIsInspectorOpen((isOpen) => !isOpen)}
+            onToggleSidebar={() => setIsSidebarOpen((isOpen) => !isOpen)}
           />
           <CanvasWorkspace />
         </section>
