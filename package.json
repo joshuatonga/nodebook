@@ -1,0 +1,49 @@
+{
+  "name": "nodebook",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local-first infinite workspace shared by people and their agents.",
+  "license": "MIT",
+  "packageManager": "pnpm@11.10.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@dagrejs/dagre": "^3.1.1",
+    "@xyflow/react": "^12.11.6",
+    "idb-keyval": "^6.3.0",
+    "lucide-react": "^1.39.0",
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.5.4",
+    "zundo": "^2.3.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@mcp-b/webmcp-types": "^5.1.0",
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/dagre": "^0.7.53",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.1.11",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.4",
+    "jsdom": "^30.0.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.11"
+  }
+}
