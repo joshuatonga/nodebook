@@ -6,7 +6,7 @@ The challenge demo starts from a blank canvas with:
 
 > Research MyFitnessPal and map the features we’d need for a clone.
 
-**Live app:** [nodebook-wine.vercel.app](https://nodebook-wine.vercel.app/)
+**Live app:** [nodebook-joshuatonga.vercel.app](https://nodebook-joshuatonga.vercel.app/)
 
 An agent researches with its own capabilities and uses Nodebook’s WebMCP tools to create the cited feature map. The human then reviews scope, locks decisions, and asks the agent to expand selected nodes into linked trace and learning maps.
 
