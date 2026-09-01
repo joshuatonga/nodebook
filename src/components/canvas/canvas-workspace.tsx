@@ -35,6 +35,12 @@ function colorForKind(kind: string): string {
   return "var(--ring)";
 }
 
+function colorForHighlight(tone: "focus" | "risk" | "success"): string {
+  if (tone === "risk") return "var(--destructive)";
+  if (tone === "success") return "var(--status-positive)";
+  return "var(--chart-2)";
+}
+
 function CanvasInner() {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const selectedNodeIds = useWorkspaceStore((state) => state.selectedNodeIds);
@@ -60,6 +66,11 @@ function CanvasInner() {
     () => Object.values(documentEdges).filter((edge) => edge.mapId === activeMapId),
     [activeMapId, documentEdges],
   );
+  const highlightedNodeIds = useMemo(() => new Set(highlight?.nodeIds ?? []), [highlight]);
+  const hasVisibleHighlight = useMemo(
+    () => mapNodes.some((node) => highlightedNodeIds.has(node.id)),
+    [highlightedNodeIds, mapNodes],
+  );
   const mapLinksFingerprint = Object.values(workspace.maps)
     .map((map) => `${map.id}:${map.parentNodeId ?? ""}`)
     .sort()
@@ -71,17 +82,22 @@ function CanvasInner() {
         id: node.id,
         type: "semantic",
         position: node.position,
+        className: hasVisibleHighlight
+          ? highlightedNodeIds.has(node.id)
+            ? "path-highlighted"
+            : "path-dimmed"
+          : undefined,
         data: {
           node,
           linkedMapCount: linkedMapsForNode(workspace, node.id).length,
-          highlighted: highlight?.nodeIds.includes(node.id) ? highlight.tone : undefined,
+          highlighted: highlightedNodeIds.has(node.id) ? highlight?.tone : undefined,
           appSelected: selectedNodeIds.includes(node.id),
         },
         draggable: true,
       })),
     // The primitive link fingerprint deliberately ignores viewport-only map updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [highlight, mapLinksFingerprint, mapNodes, selectedNodeIds],
+    [hasVisibleHighlight, highlight?.tone, highlightedNodeIds, mapLinksFingerprint, mapNodes, selectedNodeIds],
   );
   const [flowNodes, setFlowNodes] = useState<SemanticFlowNode[]>(projectedNodes);
 
@@ -93,18 +109,37 @@ function CanvasInner() {
 
   const flowEdges = useMemo<Edge[]>(
     () =>
-      mapEdges.map((edge) => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        label: edge.label,
-        type: "smoothstep",
-        animated: highlight?.nodeIds.includes(edge.source) && highlight.nodeIds.includes(edge.target),
-        markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "var(--muted-foreground)" },
-        style: { stroke: "var(--border-strong)", strokeWidth: 1.35 },
-        labelStyle: { fontSize: 10, fill: "var(--muted-foreground)" },
-      })),
-    [highlight, mapEdges],
+      mapEdges.map((edge) => {
+        const isHighlighted =
+          hasVisibleHighlight && highlightedNodeIds.has(edge.source) && highlightedNodeIds.has(edge.target);
+        const highlightColor = highlight ? colorForHighlight(highlight.tone) : "var(--border-strong)";
+
+        return {
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          label: edge.label,
+          type: "smoothstep",
+          animated: isHighlighted,
+          className: hasVisibleHighlight ? (isHighlighted ? "path-highlighted" : "path-dimmed") : undefined,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 14,
+            height: 14,
+            color: isHighlighted ? highlightColor : "var(--muted-foreground)",
+          },
+          style: {
+            stroke: isHighlighted ? highlightColor : "var(--border-strong)",
+            strokeWidth: isHighlighted ? 2.25 : 1.35,
+          },
+          labelStyle: {
+            fontSize: 10,
+            fill: isHighlighted ? highlightColor : "var(--muted-foreground)",
+            fontWeight: isHighlighted ? 650 : 400,
+          },
+        };
+      }),
+    [hasVisibleHighlight, highlight, highlightedNodeIds, mapEdges],
   );
 
   const onNodesChange = useCallback((changes: NodeChange<SemanticFlowNode>[]) => {

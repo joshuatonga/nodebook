@@ -659,6 +659,20 @@ button:disabled {
 
 .react-flow__node {
   width: auto;
+  transition: opacity 160ms ease, filter 160ms ease;
+}
+
+.react-flow__node.path-dimmed {
+  opacity: 0.2;
+  filter: saturate(0.35);
+}
+
+.react-flow__edge {
+  transition: opacity 160ms ease;
+}
+
+.react-flow__edge.path-dimmed {
+  opacity: 0.12;
 }
 
 .semantic-node {
@@ -712,15 +726,21 @@ button:disabled {
 }
 
 .semantic-node.highlight-focus {
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--chart-2) 22%, transparent), var(--shadow);
+  border-color: var(--chart-2);
+  background: color-mix(in oklch, var(--chart-2) 7%, var(--card));
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--chart-2) 32%, transparent), var(--shadow);
 }
 
 .semantic-node.highlight-risk {
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 23%, transparent), var(--shadow);
+  border-color: var(--destructive);
+  background: color-mix(in oklch, var(--destructive) 6%, var(--card));
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--destructive) 32%, transparent), var(--shadow);
 }
 
 .semantic-node.highlight-success {
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--status-positive) 24%, transparent), var(--shadow);
+  border-color: var(--status-positive);
+  background: color-mix(in oklch, var(--status-positive) 7%, var(--card));
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--status-positive) 32%, transparent), var(--shadow);
 }
 
 .node-card-header,

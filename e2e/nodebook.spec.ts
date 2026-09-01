@@ -66,3 +66,43 @@ test("exports a valid workspace JSON file", async ({ page }) => {
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe("myfitnesspal-clone-research.json");
 });
+
+test("agent highlights dim the rest of the canvas until cleared", async ({ page }) => {
+  await page.addInitScript(() => {
+    const tools: Record<string, { execute: (input: unknown) => unknown }> = {};
+    Object.defineProperty(window, "__nodebookTools", { value: tools });
+    Object.defineProperty(document, "modelContext", {
+      configurable: true,
+      value: {
+        registerTool(tool: { name: string; execute: (input: unknown) => unknown }) {
+          tools[tool.name] = tool;
+          return Promise.resolve();
+        },
+      },
+    });
+  });
+  await page.reload();
+  await expect(page.getByText("WebMCP ready")).toBeVisible();
+  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+
+  await page.evaluate(async () => {
+    const tools = (window as unknown as {
+      __nodebookTools: Record<string, { execute: (input: unknown) => unknown }>;
+    }).__nodebookTools;
+    await tools.highlight_path.execute({
+      nodeIds: ["project-mfp", "group-log", "feature-food"],
+      tone: "risk",
+    });
+  });
+
+  const highlightedNodes = page.locator(".react-flow__node.path-highlighted");
+  const dimmedNodes = page.locator(".react-flow__node.path-dimmed");
+  await expect(highlightedNodes).toHaveCount(3);
+  await expect(dimmedNodes.first()).toHaveCSS("opacity", "0.2");
+  await expect(page.locator(".react-flow__edge.path-highlighted")).toHaveCount(2);
+  await expect(page.locator(".react-flow__edge.path-dimmed").first()).toHaveCSS("opacity", "0.12");
+
+  await page.getByRole("button", { name: "Clear" }).click();
+  await expect(highlightedNodes).toHaveCount(0);
+  await expect(dimmedNodes).toHaveCount(0);
+});
