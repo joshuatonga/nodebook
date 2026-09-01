@@ -67,6 +67,22 @@ test("exports a valid workspace JSON file", async ({ page }) => {
   expect(download.suggestedFilename()).toBe("myfitnesspal-clone-research.json");
 });
 
+test("nodes expand to show their entire description", async ({ page }) => {
+  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  const node = page.locator(".semantic-node").filter({
+    has: page.getByRole("heading", { name: "Calories & macros", exact: true }),
+  });
+  const description = node.locator("p");
+  await description.evaluate((element) => {
+    element.textContent = "A long node description that should remain fully visible without clipping. ".repeat(8);
+  });
+
+  await expect.poll(() => description.evaluate((element) => element.clientHeight)).toBeGreaterThan(100);
+  expect(await description.evaluate((element) => element.scrollHeight)).toBe(
+    await description.evaluate((element) => element.clientHeight),
+  );
+});
+
 test("agent highlights dim the rest of the canvas until cleared", async ({ page }) => {
   await page.addInitScript(() => {
     const tools: Record<string, { execute: (input: unknown) => unknown }> = {};

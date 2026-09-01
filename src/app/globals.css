@@ -775,15 +775,12 @@ button:disabled {
 }
 
 .semantic-node p {
-  display: -webkit-box;
   min-height: 26px;
   margin: 0;
-  overflow: hidden;
+  overflow-wrap: anywhere;
   color: var(--muted-foreground);
   font-size: 9px;
   line-height: 1.45;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .semantic-node .node-placeholder {
