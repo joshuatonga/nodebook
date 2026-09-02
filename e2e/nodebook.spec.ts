@@ -74,7 +74,7 @@ test("creates connected nodes beside a selection or at a clicked canvas position
 });
 
 test("deletes a canvas from its hover action and supports undo", async ({ page }) => {
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
   const sidebar = page.getByRole("complementary", { name: "Workspace navigation" });
   const canvas = sidebar.getByRole("button", { name: "Fast capture journey" });
 
@@ -90,7 +90,7 @@ test("deletes a canvas from its hover action and supports undo", async ({ page }
 });
 
 test("clearly selects a connection and deletes it by mouse or keyboard with undo", async ({ page }) => {
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
   await page.getByRole("button", { name: "Fit", exact: true }).click();
   const connection = page.locator('[data-testid="rf__edge-edge-foundation-feature-fast-capture"]');
 
@@ -113,7 +113,7 @@ test("clearly selects a connection and deletes it by mouse or keyboard with undo
 });
 
 test("demo supports scope review, trace intent, linked maps, undo, and reload persistence", async ({ page }) => {
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
   await expect(page.getByText("Ship Nodebook v1")).toBeVisible();
   await expect(page.getByRole("button", { name: "Accept all proposed" })).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Inspector" })).not.toBeVisible();
@@ -151,7 +151,7 @@ test("demo supports scope review, trace intent, linked maps, undo, and reload pe
 });
 
 test("exports a valid workspace JSON file", async ({ page }) => {
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export workspace" }).click();
   const download = await downloadPromise;
@@ -159,7 +159,7 @@ test("exports a valid workspace JSON file", async ({ page }) => {
 });
 
 test("nodes expand to show their entire description", async ({ page }) => {
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
   const node = page.locator(".semantic-node").filter({
     has: page.getByRole("heading", { name: "Infinite semantic canvas", exact: true }),
   });
@@ -175,7 +175,7 @@ test("nodes expand to show their entire description", async ({ page }) => {
 });
 
 test("selected nodes support direct title and description editing", async ({ page }) => {
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
   const node = page.locator(".semantic-node").filter({
     has: page.getByRole("heading", { name: "Fast idea capture", exact: true }),
   });
@@ -206,7 +206,7 @@ test("selected nodes support direct title and description editing", async ({ pag
 });
 
 test("selected nodes expose a contextual details action", async ({ page }) => {
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
   const node = page.locator(".semantic-node").filter({
     has: page.getByRole("heading", { name: "Agent handoff", exact: true }),
   });
@@ -224,7 +224,7 @@ test("selected nodes expose a contextual details action", async ({ page }) => {
 });
 
 test("node evidence opens a single source externally and aggregates multiple sources in Details", async ({ page }) => {
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
   await page.getByLabel("Workspace navigation").getByRole("button", { name: "Local-first foundations" }).click();
   const node = page.locator(".semantic-node").filter({
     has: page.getByRole("heading", { name: "Local-first software", exact: true }),
@@ -259,7 +259,7 @@ test("node evidence opens a single source externally and aggregates multiple sou
 });
 
 test("quiz nodes reveal the correct answer after a learner chooses", async ({ page }) => {
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
   await page.getByLabel("Workspace navigation").getByRole("button", { name: "Local-first foundations" }).click();
   const quiz = page.getByLabel("Quiz: Architecture check");
   await expect(quiz.getByRole("button", { name: "React Flow nodes" })).toBeVisible();
@@ -295,7 +295,7 @@ test("agent highlights dim the rest of the canvas until cleared", async ({ page 
   });
   await page.reload();
   await expect(page.getByText("WebMCP ready")).toBeVisible();
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
 
   await page.evaluate(async () => {
     const tools = (window as unknown as {
@@ -335,7 +335,7 @@ test("people and named agents can comment on a node", async ({ page }) => {
   });
   await page.reload();
   await expect(page.getByText("WebMCP ready")).toBeVisible();
-  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByRole("button", { name: "Load demo" }).click();
 
   const node = page.locator(".semantic-node", {
     has: page.getByRole("heading", { name: "Evidence on decisions", exact: true }),

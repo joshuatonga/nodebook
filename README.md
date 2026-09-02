@@ -19,7 +19,7 @@ It includes a product roadmap, two end-to-end journeys, a local-first learning m
 - Deterministic Dagre layout, path highlighting, selection, minimap, and fit view
 - One undo step and one activity entry for every agent mutation
 - IndexedDB persistence plus JSON import/export
-- Detailed Nodebook launch workspace available through **Load complete demo**
+- Detailed Nodebook launch workspace available through **Load demo**
 - Graceful “WebMCP unavailable” state in unsupported browsers
 - No accounts, environment variables, API routes, cookies, analytics, or cloud database
 
@@ -107,7 +107,7 @@ All schemas reject unknown properties, unsafe research URLs, missing IDs, overlo
 4. `Highlight the path from Ship Nodebook v1 to Fast idea capture and focus it on the canvas.`
 5. `Review Release readiness and comment on the next quality gate we should complete.`
 
-The **Load complete demo** button replaces the current browser workspace with this editable example.
+The **Load demo** button replaces the current browser workspace with this editable example.
 
 ## Privacy
 

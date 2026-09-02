@@ -10,7 +10,7 @@
 
 ### 0:00–0:45 — Open a durable product map
 
-Choose **Load complete demo** and open **Product roadmap**. Show:
+Choose **Load demo** and open **Product roadmap**. Show:
 
 - Four workstreams with included, proposed, and excluded scope.
 - Delivery progress, locked decisions, evidence, and human–agent comments.

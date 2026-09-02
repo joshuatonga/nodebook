@@ -150,7 +150,7 @@ export function Sidebar() {
           <Plus size={15} /> New workspace
         </button>
         <button className="quiet-button accent" onClick={loadDemoWorkspace} type="button">
-          Load complete demo
+          Load demo
         </button>
       </div>
       <div className="local-note">

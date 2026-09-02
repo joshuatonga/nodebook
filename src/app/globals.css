@@ -555,7 +555,9 @@ button:disabled {
 }
 
 .quiet-button {
+  min-width: 0;
   padding: 8px;
+  white-space: nowrap;
 }
 
 .quiet-button:hover,
