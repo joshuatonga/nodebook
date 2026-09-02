@@ -17,6 +17,24 @@ describe("workspace store", () => {
     expect(useWorkspaceStore.getState().workspace.nodes["feature-food"].title).toBe("Food diary");
   });
 
+  it("creates and opens a blank build canvas as one reversible history step", () => {
+    const previousMapId = useWorkspaceStore.getState().workspace.activeMapId;
+    const mapId = useWorkspaceStore.getState().addCanvas();
+    const state = useWorkspaceStore.getState();
+
+    expect(state.workspace.activeMapId).toBe(mapId);
+    expect(state.workspace.maps[mapId]).toMatchObject({
+      title: "Untitled canvas",
+      kind: "build",
+      viewport: { x: 0, y: 0, zoom: 0.9 },
+    });
+    expect(useWorkspaceStore.temporal.getState().pastStates).toHaveLength(1);
+
+    useWorkspaceStore.temporal.getState().undo();
+    expect(useWorkspaceStore.getState().workspace.maps[mapId]).toBeUndefined();
+    expect(useWorkspaceStore.getState().workspace.activeMapId).toBe(previousMapId);
+  });
+
   it("deletes linked maps with an originating node and restores them on undo", () => {
     useWorkspaceStore.getState().deleteNodes(["feature-food"]);
     expect(useWorkspaceStore.getState().workspace.maps["map-food-logging-trace"]).toBeUndefined();

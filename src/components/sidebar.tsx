@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Boxes, Clock3, GitBranch, GraduationCap, Plus } from "lucide-react";
+import { BookOpen, Boxes, GitBranch, GraduationCap, Plus } from "lucide-react";
 import { useMemo } from "react";
 import type { MapKind } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
@@ -13,6 +13,7 @@ const mapMeta: Record<MapKind, { label: string; icon: typeof Boxes }> = {
 
 export function Sidebar() {
   const workspace = useWorkspaceStore((state) => state.workspace);
+  const addCanvas = useWorkspaceStore((state) => state.addCanvas);
   const activateMap = useWorkspaceStore((state) => state.activateMap);
   const createNewWorkspace = useWorkspaceStore((state) => state.createNewWorkspace);
   const loadDemoWorkspace = useWorkspaceStore((state) => state.loadDemoWorkspace);
@@ -24,61 +25,42 @@ export function Sidebar() {
         <span className="brand-mark">N</span>
         <div>
           <strong>Nodebook</strong>
-          <span>Agent-readable canvas</span>
+          <span title={workspace.name}>{workspace.name}</span>
         </div>
       </div>
 
-      <div className="workspace-card">
-        <span className="eyebrow">Local workspace</span>
-        <strong title={workspace.name}>{workspace.name}</strong>
-        <span>{maps.length} linked {maps.length === 1 ? "map" : "maps"}</span>
-      </div>
-
-      <nav className="map-navigation">
-        {(["build", "trace", "learn"] as const).map((kind) => {
-          const groupMaps = maps.filter((map) => map.kind === kind);
-          const Icon = mapMeta[kind].icon;
-          return (
-            <div className="map-group" key={kind}>
-              <div className="map-group-label">
-                <Icon size={14} />
-                <span>{mapMeta[kind].label}</span>
-                <small>{groupMaps.length}</small>
-              </div>
-              {groupMaps.length === 0 ? (
-                <p className="map-empty">Created when you or your agent drills in.</p>
-              ) : (
-                groupMaps.map((map) => (
-                  <button
-                    className={`map-link ${workspace.activeMapId === map.id ? "active" : ""}`}
-                    key={map.id}
-                    onClick={() => activateMap(map.id)}
-                    type="button"
-                  >
-                    <span>{map.title}</span>
-                    {map.parentNodeId ? <GitBranch size={12} /> : null}
-                  </button>
-                ))
-              )}
-            </div>
-          );
-        })}
+      <nav aria-label="Canvases" className="map-navigation">
+        <button className="new-canvas-button" onClick={() => addCanvas()} type="button">
+          <Plus size={16} strokeWidth={1.8} />
+          <span>New canvas</span>
+        </button>
+        <div className="map-list-heading">
+          <span>Canvases</span>
+          <small>{maps.length}</small>
+        </div>
+        <div className="map-list">
+          {maps.map((map) => {
+            const { icon: Icon, label } = mapMeta[map.kind];
+            return (
+              <button
+                className={`map-link ${workspace.activeMapId === map.id ? "active" : ""}`}
+                data-map-kind={map.kind}
+                key={map.id}
+                onClick={() => activateMap(map.id)}
+                type="button"
+              >
+                <span aria-hidden="true" className={`map-kind-indicator ${map.kind}`} title={`${label} canvas`}>
+                  <Icon size={14} strokeWidth={1.9} />
+                </span>
+                <span className="map-link-copy">
+                  <span className="map-link-title">{map.title}</span>
+                  <span aria-hidden="true" className="map-link-kind">{label}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </nav>
-
-      <div className="sidebar-activity">
-        <div className="map-group-label">
-          <Clock3 size={14} />
-          <span>Recent activity</span>
-        </div>
-        <div className="activity-list">
-          {workspace.activity.slice(0, 4).map((entry) => (
-            <div className="activity-item" key={entry.id}>
-              <span className={`activity-dot ${entry.source}`} />
-              <p>{entry.summary}</p>
-            </div>
-          ))}
-        </div>
-      </div>
 
       <div className="sidebar-actions">
         <button
@@ -88,7 +70,7 @@ export function Sidebar() {
           }}
           type="button"
         >
-          <Plus size={15} /> New
+          <Plus size={15} /> New workspace
         </button>
         <button className="quiet-button accent" onClick={loadDemoWorkspace} type="button">
           Load demo

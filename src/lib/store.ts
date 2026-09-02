@@ -9,6 +9,7 @@ import type {
   CanvasNode,
   Evidence,
   HighlightState,
+  MapKind,
   PendingIntent,
   ViewportCommand,
   WebMcpStatus,
@@ -29,6 +30,7 @@ interface WorkspaceStore {
   loadDemoWorkspace: () => void;
   importWorkspace: (workspace: WorkspaceDocument) => void;
   commitWorkspace: (workspace: WorkspaceDocument, activity: ActivityDescriptor) => void;
+  addCanvas: (kind?: MapKind) => string;
   activateMap: (mapId: string) => void;
   updateMapViewport: (mapId: string, viewport: CanvasMap["viewport"]) => void;
   setSelection: (nodeIds: string[]) => void;
@@ -168,6 +170,41 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
 
       commitWorkspace: (workspace, activity) => {
         set({ workspace: withActivity(workspace, activity) });
+      },
+
+      addCanvas: (kind = "build") => {
+        const workspace = get().workspace;
+        const existingTitles = new Set(Object.values(workspace.maps).map((map) => map.title));
+        let title = "Untitled canvas";
+        let suffix = 1;
+        while (existingTitles.has(title)) {
+          suffix += 1;
+          title = `Untitled canvas ${suffix}`;
+        }
+
+        const id = createId("map");
+        const createdAt = nowIso();
+        const next = cloneDocument(workspace);
+        next.activeMapId = id;
+        next.maps[id] = {
+          id,
+          title,
+          kind,
+          viewport: { x: 0, y: 0, zoom: 0.9 },
+          createdAt,
+          updatedAt: createdAt,
+        };
+        set({
+          workspace: withActivity(next, {
+            source: "human",
+            action: "canvas_created",
+            summary: `Added ${title}.`,
+          }),
+          selectedNodeIds: [],
+          pendingIntent: null,
+          highlight: null,
+        });
+        return id;
       },
 
       activateMap: (mapId) => {

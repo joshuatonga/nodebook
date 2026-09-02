@@ -25,6 +25,16 @@ test("first launch is a blank agent-ready workspace with an unsupported fallback
   await expect(page.getByRole("complementary", { name: "Workspace navigation" })).toBeVisible();
 });
 
+test("creates and opens a canvas from the sidebar", async ({ page }) => {
+  const sidebar = page.getByRole("complementary", { name: "Workspace navigation" });
+
+  await sidebar.getByRole("button", { name: "New canvas" }).click();
+
+  await expect(sidebar.getByRole("button", { name: "Untitled canvas" })).toHaveAttribute("data-map-kind", "build");
+  await expect(sidebar.locator(".map-link.active")).toContainText("Untitled canvas");
+  await expect(page.getByRole("heading", { name: "Map a product with your agent." })).toBeVisible();
+});
+
 test("demo supports scope review, trace intent, linked maps, undo, and reload persistence", async ({ page }) => {
   await page.getByRole("button", { name: "Load source-backed demo" }).click();
   await expect(page.getByText("MyFitnessPal-style tracker")).toBeVisible();
