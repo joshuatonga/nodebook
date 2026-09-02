@@ -1,4 +1,4 @@
-export const WORKSPACE_SCHEMA_VERSION = 1 as const;
+export const WORKSPACE_SCHEMA_VERSION = 2 as const;
 
 export type MapKind = "blank" | "build" | "trace" | "learn";
 export type NodeKind =
@@ -23,6 +23,7 @@ export type EdgeRelation =
   | "prerequisite"
   | "related_to";
 export type ActivitySource = "human" | "agent" | "system";
+export type CommentAuthorKind = "human" | "agent";
 export type HighlightTone = "focus" | "risk" | "success";
 export type WebMcpStatus = "checking" | "available" | "unavailable" | "error";
 
@@ -53,6 +54,14 @@ export interface QuizContent {
   explanation?: string;
 }
 
+export interface NodeComment {
+  id: string;
+  body: string;
+  authorKind: CommentAuthorKind;
+  authorName: string;
+  createdAt: string;
+}
+
 export interface CanvasNode {
   id: string;
   mapId: string;
@@ -67,6 +76,7 @@ export interface CanvasNode {
   locked: boolean;
   tags: string[];
   evidence: Evidence[];
+  comments: NodeComment[];
   createdAt: string;
   updatedAt: string;
 }

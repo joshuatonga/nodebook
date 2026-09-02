@@ -1,7 +1,7 @@
 "use client";
 
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
-import { CheckCircle2, ExternalLink, GitBranch, LockKeyhole, PanelRightOpen, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, ExternalLink, GitBranch, LockKeyhole, MessageCircle, PanelRightOpen, RotateCcw, XCircle } from "lucide-react";
 import { memo, useLayoutEffect, useRef, useState } from "react";
 import type { CanvasNode, QuizContent } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
@@ -13,6 +13,7 @@ export interface SemanticNodeData extends Record<string, unknown> {
   appSelected?: boolean;
   inspectorOpen?: boolean;
   onOpenDetails?: () => void;
+  onOpenComments?: (nodeId: string) => void;
   onOpenEvidence?: (nodeId: string) => void;
 }
 
@@ -119,6 +120,19 @@ function SemanticNodeView({ data, selected }: NodeProps<SemanticFlowNode>) {
       <div className="node-card-header">
         <span className="node-kind">{node.kind === "question" ? "quiz" : node.kind}</span>
         <span className="node-card-icons">
+          <button
+            aria-label={node.comments.length === 0 ? `Add comment to ${node.title}` : `View ${node.comments.length} ${node.comments.length === 1 ? "comment" : "comments"} on ${node.title}`}
+            className={`node-comment-action nodrag nopan ${node.comments.length > 0 ? "has-comments" : ""}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              data.onOpenComments?.(node.id);
+            }}
+            title={node.comments.length === 0 ? "Add comment" : "View comments"}
+            type="button"
+          >
+            <MessageCircle aria-hidden="true" size={12} />
+            {node.comments.length > 0 ? <span>{node.comments.length}</span> : null}
+          </button>
           <NodeEvidenceAction node={node} onOpenEvidence={data.onOpenEvidence} />
           {linkedMapCount > 0 ? <GitBranch aria-label={`${linkedMapCount} linked maps`} size={12} /> : null}
           {node.locked ? <LockKeyhole aria-label="Locked" size={12} /> : null}

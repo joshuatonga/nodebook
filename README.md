@@ -83,15 +83,17 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the document format, mutati
 | --- | --- |
 | `get_workspace` | Workspace metadata, maps, progress, selection, and pending intent |
 | `get_map` | Compact nodes and edges for one map |
-| `get_node` | Full node, citations/evidence, and linked maps |
+| `get_node` | Full node, citations/evidence, comments, and linked maps |
 | `get_selection` | Selected nodes plus pending Trace/Learn intent |
-| `search_nodes` | Search titles, descriptions, tags, and evidence |
+| `search_nodes` | Search titles, descriptions, tags, evidence, and comments |
 | `create_map` | Batch-create, validate, lay out, link, persist, and optionally open a map |
 | `upsert_graph` | Merge nodes and edges while skipping locked nodes |
 | `set_scope_decisions` | Include/exclude proposed features; exclusions require rationale |
 | `set_delivery_statuses` | Update included-feature delivery progress and attach evidence |
 | `set_learning_states` | Mark learning state and optionally lock known concepts |
 | `add_evidence` | Attach source, file, test, commit, or note evidence |
+| `list_comments` | Read human and agent comments by node or map |
+| `add_comment` | Comment on a node with the calling agent's display name |
 | `focus_nodes` | Select and fit nodes on the live canvas |
 | `highlight_path` | Emphasize an ordered path with focus, risk, or success styling |
 
@@ -103,6 +105,7 @@ All schemas reject unknown properties, unsafe research URLs, missing IDs, overlo
 2. Select **Food diary**, press **Trace**, then ask: `Create an end-to-end trace map for the selected feature.`
 3. Select **Update macro totals**, press **Learn**, then ask: `Create a learning map for the selected concept with prerequisites, examples, an exercise, and a multiple-choice quiz.`
 4. `Highlight the critical food logging path and focus it on the canvas.`
+5. `Comment on Food diary as Codex with the main edge case we should test.`
 
 The optional **Load demo** button creates the same kind of source-backed workspace without waiting for live research.
 

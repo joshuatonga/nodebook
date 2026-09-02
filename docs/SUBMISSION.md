@@ -5,7 +5,7 @@
 - [ ] Verify `LICENSE` is visible from the repository root
 - [ ] Connect the repository to Vercel
 - [ ] Verify production in a standard Chromium browser
-- [ ] Discover all 13 tools in WebMCP-enabled Chrome
+- [ ] Discover all 15 tools in WebMCP-enabled Chrome
 - [ ] Discover and call tools in ChatGPT’s in-app browser
 - [ ] Create a map and confirm the canvas updates immediately
 - [ ] Change scope and confirm progress recalculates
@@ -16,4 +16,4 @@
 
 Suggested description:
 
-> Nodebook is a local-first infinite canvas shared by people and their external agents. An agent researches with its own capabilities, then uses 13 deterministic WebMCP tools to create cited feature maps, user-journey traces, and learning maps. People retain control through visible scope decisions, locks, evidence, undo, and linked-map navigation. Nodebook has no embedded chatbot, accounts, cloud sync, or backend: the full workspace stays in the browser’s IndexedDB and can be exported as JSON.
+> Nodebook is a local-first infinite canvas shared by people and their external agents. An agent researches with its own capabilities, then uses 15 deterministic WebMCP tools to create cited feature maps, user-journey traces, learning maps, and attributed node comments. People retain control through visible scope decisions, locks, evidence, undo, and linked-map navigation. Nodebook has no embedded chatbot, accounts, cloud sync, or backend: the full workspace stays in the browser’s IndexedDB and can be exported as JSON.

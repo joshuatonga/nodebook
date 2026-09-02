@@ -268,3 +268,47 @@ test("agent highlights dim the rest of the canvas until cleared", async ({ page 
   await expect(highlightedNodes).toHaveCount(0);
   await expect(dimmedNodes).toHaveCount(0);
 });
+
+test("people and named agents can comment on a node", async ({ page }) => {
+  await page.addInitScript(() => {
+    const tools: Record<string, { execute: (input: unknown) => unknown }> = {};
+    Object.defineProperty(window, "__nodebookTools", { value: tools });
+    Object.defineProperty(document, "modelContext", {
+      configurable: true,
+      value: {
+        registerTool(tool: { name: string; execute: (input: unknown) => unknown }) {
+          tools[tool.name] = tool;
+          return Promise.resolve();
+        },
+      },
+    });
+  });
+  await page.reload();
+  await expect(page.getByText("WebMCP ready")).toBeVisible();
+  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+
+  const node = page.locator(".semantic-node", {
+    has: page.getByRole("heading", { name: "Food diary", exact: true }),
+  });
+  await node.getByRole("button", { name: "Add comment to Food diary" }).click();
+  const inspector = page.getByRole("complementary", { name: "Inspector" });
+  await inspector.getByRole("textbox", { name: "Comment" }).fill("Please verify the empty state.");
+  await inspector.getByRole("button", { name: "Comment", exact: true }).click();
+  await expect(inspector.getByText("Please verify the empty state.")).toBeVisible();
+  await expect(inspector.getByText("You", { exact: true })).toBeVisible();
+
+  await page.evaluate(() => {
+    const tools = (window as unknown as {
+      __nodebookTools: Record<string, { execute: (input: unknown) => unknown }>;
+    }).__nodebookTools;
+    tools.add_comment.execute({
+      nodeId: "feature-food",
+      body: "I checked it; the fallback copy needs a revision.",
+      agentName: "Codex",
+    });
+  });
+
+  await expect(inspector.getByText("I checked it; the fallback copy needs a revision.")).toBeVisible();
+  await expect(inspector.getByText("Codex", { exact: true })).toBeVisible();
+  await expect(node.getByRole("button", { name: "View 2 comments on Food diary" })).toBeVisible();
+});

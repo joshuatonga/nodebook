@@ -14,6 +14,7 @@ import type {
   ViewportCommand,
   WebMcpStatus,
   WorkspaceDocument,
+  NodeComment,
 } from "@/lib/model";
 
 interface WorkspaceStore {
@@ -48,6 +49,7 @@ interface WorkspaceStore {
   deleteNodes: (nodeIds: string[]) => void;
   acceptAllProposed: () => void;
   addHumanEvidence: (nodeId: string, evidence: Omit<Evidence, "id" | "addedBy" | "createdAt">) => void;
+  addHumanComment: (nodeId: string, body: string) => void;
 }
 
 function cloneDocument(document: WorkspaceDocument): WorkspaceDocument {
@@ -405,6 +407,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
           locked: false,
           tags: [],
           evidence: [],
+          comments: [],
           createdAt,
           updatedAt: createdAt,
         };
@@ -490,6 +493,30 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
             source: "human",
             action: "evidence_added",
             summary: `Added evidence to ${existing.title}.`,
+          }),
+        });
+      },
+
+      addHumanComment: (nodeId, body) => {
+        const existing = get().workspace.nodes[nodeId];
+        const nextBody = body.trim().slice(0, 10_000);
+        if (!existing || !nextBody) return;
+        const next = cloneDocument(get().workspace);
+        const createdAt = nowIso();
+        const comment: NodeComment = {
+          id: createId("comment"),
+          body: nextBody,
+          authorKind: "human",
+          authorName: "You",
+          createdAt,
+        };
+        next.nodes[nodeId].comments.push(comment);
+        next.nodes[nodeId].updatedAt = createdAt;
+        set({
+          workspace: withActivity(next, {
+            source: "human",
+            action: "comment_added",
+            summary: `Commented on ${existing.title}.`,
           }),
         });
       },

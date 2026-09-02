@@ -20,7 +20,7 @@ A child map points to its originating node with `parentNodeId`. That relationshi
 
 Zustand owns the live document. Zundo snapshots only the durable workspace and limits history to 50 states. Viewport changes and navigation pause temporal history; semantic human or agent mutations create history.
 
-The persistence hook hydrates once from IndexedDB and then debounces writes. Import validation performs schema parsing, migration, dictionary-key checks, map/node/edge referential integrity, graph-boundary checks, and HTTPS validation for research sources.
+The persistence hook hydrates once from IndexedDB and then debounces writes. Import validation performs schema parsing, migration (including adding comment histories to version-one nodes), dictionary-key checks, map/node/edge referential integrity, graph-boundary checks, and HTTPS validation for research sources.
 
 ## WebMCP boundary
 
@@ -34,6 +34,8 @@ The persistence hook hydrates once from IndexedDB and then debounces writes. Imp
 Tools register with the current `document.modelContext.registerTool()` API and share one `AbortController` signal. Unmounting the application aborts the registrations. Read tools declare `readOnlyHint`; all tools declare how returned content should be treated.
 
 Agent mutations clone the current document, validate the whole requested batch, apply it synchronously, and call `commitWorkspace` once. That creates one visible update, one activity entry, one IndexedDB save, and one undo step per tool call.
+
+Comments live on stable node IDs rather than mutable title or description text. Human comments are attributed as `You`; `add_comment` requires the calling agent to provide its display identity when it wants a specific name. `list_comments` returns authorship together with node context.
 
 ## Human control and safety
 

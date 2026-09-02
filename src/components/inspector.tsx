@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Link2,
   LockKeyhole,
+  MessageCircle,
   PanelRight,
   Plus,
   Trash2,
@@ -18,7 +19,7 @@ import { createId, nowIso } from "@/lib/ids";
 import { linkedMapsForNode } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
 
-export function Inspector({ evidenceFocusRequest = 0 }: { evidenceFocusRequest?: number }) {
+export function Inspector({ focusRequest = null }: { focusRequest?: { id: number; section: "evidence" | "comments" } | null }) {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const selectedNodeIds = useWorkspaceStore((state) => state.selectedNodeIds);
   const pendingIntent = useWorkspaceStore((state) => state.pendingIntent);
@@ -28,22 +29,26 @@ export function Inspector({ evidenceFocusRequest = 0 }: { evidenceFocusRequest?:
   const clearIntent = useWorkspaceStore((state) => state.clearIntent);
   const activateMap = useWorkspaceStore((state) => state.activateMap);
   const addHumanEvidence = useWorkspaceStore((state) => state.addHumanEvidence);
+  const addHumanComment = useWorkspaceStore((state) => state.addHumanComment);
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [evidenceLabel, setEvidenceLabel] = useState("");
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const evidenceSectionRef = useRef<HTMLElement>(null);
+  const commentsSectionRef = useRef<HTMLElement>(null);
   const selectedNodes = useMemo(
     () => selectedNodeIds.flatMap((id) => (workspace.nodes[id] ? [workspace.nodes[id]] : [])),
     [selectedNodeIds, workspace.nodes],
   );
 
   useEffect(() => {
-    if (evidenceFocusRequest === 0) return;
+    if (!focusRequest) return;
     const frame = window.requestAnimationFrame(() => {
-      evidenceSectionRef.current?.focus({ preventScroll: true });
-      evidenceSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const section = focusRequest.section === "comments" ? commentsSectionRef.current : evidenceSectionRef.current;
+      section?.focus({ preventScroll: true });
+      section?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [evidenceFocusRequest]);
+  }, [focusRequest]);
 
   if (selectedNodes.length === 0) {
     return (
@@ -206,6 +211,60 @@ export function Inspector({ evidenceFocusRequest = 0 }: { evidenceFocusRequest?:
       </section>
 
       <LinkedMaps nodeId={node.id} onOpen={activateMap} workspace={workspace} />
+
+      <section
+        aria-label="Comments"
+        className="inspector-section comments-section"
+        ref={commentsSectionRef}
+        tabIndex={-1}
+      >
+        <div className="section-heading">
+          <span>Comments</span>
+          <small>{node.comments.length}</small>
+        </div>
+        <div className="comment-list">
+          {node.comments.map((comment) => (
+            <article className={`comment-card ${comment.authorKind}`} key={comment.id}>
+              <div>
+                <span className="comment-avatar" aria-hidden="true">{comment.authorKind === "agent" ? "A" : "Y"}</span>
+                <strong>{comment.authorName}</strong>
+                <time dateTime={comment.createdAt}>{new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(comment.createdAt))}</time>
+              </div>
+              <p>{comment.body}</p>
+            </article>
+          ))}
+          {node.comments.length === 0 ? <p className="muted">Start a conversation about this node. Agent comments appear here too.</p> : null}
+        </div>
+        <div className="comment-form">
+          <textarea
+            aria-label="Comment"
+            className="text-area"
+            maxLength={10_000}
+            onChange={(event) => setCommentDrafts((drafts) => ({ ...drafts, [node.id]: event.target.value }))}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && (commentDrafts[node.id] ?? "").trim()) {
+                addHumanComment(node.id, commentDrafts[node.id]);
+                setCommentDrafts((drafts) => ({ ...drafts, [node.id]: "" }));
+              }
+            }}
+            placeholder="Add a comment…"
+            rows={3}
+            value={commentDrafts[node.id] ?? ""}
+          />
+          <button
+            className="inline-action"
+            disabled={!(commentDrafts[node.id] ?? "").trim()}
+            onClick={() => {
+              addHumanComment(node.id, commentDrafts[node.id] ?? "");
+              setCommentDrafts((drafts) => ({ ...drafts, [node.id]: "" }));
+            }}
+            type="button"
+          >
+            <MessageCircle size={14} /> Comment
+          </button>
+          <small className="comment-shortcut">⌘/Ctrl + Enter</small>
+        </div>
+      </section>
 
       <section
         aria-label="Evidence"

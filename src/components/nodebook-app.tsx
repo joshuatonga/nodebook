@@ -16,14 +16,18 @@ export function NodebookApp() {
   const hydrated = useWorkspaceStore((state) => state.hydrated);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
-  const [evidenceFocusRequest, setEvidenceFocusRequest] = useState(0);
+  const [inspectorFocus, setInspectorFocus] = useState<{ id: number; section: "evidence" | "comments" } | null>(null);
   const shouldReduceMotion = useReducedMotion();
   const openInspector = useCallback(() => {
-    setEvidenceFocusRequest(0);
+    setInspectorFocus(null);
     setIsInspectorOpen(true);
   }, []);
   const openEvidence = useCallback(() => {
-    setEvidenceFocusRequest((request) => request + 1);
+    setInspectorFocus((request) => ({ id: (request?.id ?? 0) + 1, section: "evidence" }));
+    setIsInspectorOpen(true);
+  }, []);
+  const openComments = useCallback(() => {
+    setInspectorFocus((request) => ({ id: (request?.id ?? 0) + 1, section: "comments" }));
     setIsInspectorOpen(true);
   }, []);
 
@@ -67,7 +71,7 @@ export function NodebookApp() {
             isInspectorOpen={isInspectorOpen}
             isSidebarOpen={isSidebarOpen}
             onToggleInspector={() => {
-              setEvidenceFocusRequest(0);
+              setInspectorFocus(null);
               setIsInspectorOpen((isOpen) => !isOpen);
             }}
             onToggleSidebar={() => setIsSidebarOpen((isOpen) => !isOpen)}
@@ -75,6 +79,7 @@ export function NodebookApp() {
           <CanvasWorkspace
             isInspectorOpen={isInspectorOpen}
             onOpenEvidence={openEvidence}
+            onOpenComments={openComments}
             onOpenInspector={openInspector}
           />
         </section>
@@ -96,7 +101,7 @@ export function NodebookApp() {
                 key="inspector"
                 transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
               >
-                <Inspector evidenceFocusRequest={evidenceFocusRequest} />
+                <Inspector focusRequest={inspectorFocus} />
               </motion.div>
             ) : null}
           </AnimatePresence>

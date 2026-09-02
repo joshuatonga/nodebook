@@ -37,6 +37,7 @@ Show the nodes appearing live, citations in the inspector, the WebMCP-ready badg
 
 ### 2:40–3:00 — Durable and private
 
+- Add a human comment to a node, then ask the agent to add a named comment beside it.
 - Open a source citation.
 - Show recent agent activity.
 - Refresh to demonstrate IndexedDB persistence.

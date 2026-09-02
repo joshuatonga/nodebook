@@ -20,6 +20,7 @@ import { calculateDeliveryProgress } from "@/lib/progress";
 const MAX_BATCH_NODES = 100;
 const MAX_BATCH_EDGES = 200;
 const MAX_EVIDENCE = 20;
+const MAX_COMMENT_LENGTH = 10_000;
 
 const idSchema = z.string().min(1).max(160);
 const nodeKindSchema = z.enum(["project", "group", "feature", "step", "code", "concept", "question", "note", "exercise"]);
@@ -201,6 +202,7 @@ function nodeFromInput(mapId: string, input: z.infer<typeof nodeInputSchema>): C
     locked: input.locked ?? false,
     tags: input.tags ?? [],
     evidence: (input.evidence ?? []).map(evidenceFromInput),
+    comments: [],
     createdAt,
     updatedAt: createdAt,
   };
@@ -231,6 +233,7 @@ function compactNode(node: CanvasNode, includeEvidence = false): Record<string, 
     locked: node.locked,
     tags: node.tags,
     ...(includeEvidence ? { evidence: node.evidence } : { evidenceCount: node.evidence.length }),
+    commentCount: node.comments.length,
   };
 }
 
@@ -337,6 +340,14 @@ export function createNodebookTools(runtime: NodebookToolRuntime): NodebookTool[
   const addEvidenceSchema = z
     .object({ nodeId: idSchema, evidence: z.array(evidenceInputSchema).min(1).max(MAX_EVIDENCE) })
     .strict();
+  const listCommentsSchema = z.object({ nodeId: idSchema.optional(), mapId: idSchema.optional() }).strict();
+  const addCommentSchema = z
+    .object({
+      nodeId: idSchema,
+      body: z.string().trim().min(1).max(MAX_COMMENT_LENGTH),
+      agentName: z.string().trim().min(1).max(80),
+    })
+    .strict();
   const focusSchema = z.object({ nodeIds: z.array(idSchema).min(1).max(100) }).strict();
   const highlightSchema = z
     .object({ nodeIds: z.array(idSchema).min(1).max(100), tone: z.enum(["focus", "risk", "success"]) })
@@ -393,7 +404,7 @@ export function createNodebookTools(runtime: NodebookToolRuntime): NodebookTool[
     {
       name: "get_node",
       title: "Get a Nodebook node",
-      description: "Return full node details, citations or evidence, and any maps linked from it.",
+      description: "Return full node details, citations or evidence, comments, and any maps linked from it.",
       inputSchema: {
         type: "object",
         additionalProperties: false,
@@ -429,7 +440,7 @@ export function createNodebookTools(runtime: NodebookToolRuntime): NodebookTool[
     {
       name: "search_nodes",
       title: "Search Nodebook nodes",
-      description: "Search node titles, descriptions, tags, and evidence across the workspace.",
+      description: "Search node titles, descriptions, tags, evidence, and comments across the workspace.",
       inputSchema: {
         type: "object",
         additionalProperties: false,
@@ -457,6 +468,7 @@ export function createNodebookTools(runtime: NodebookToolRuntime): NodebookTool[
               node.quiz?.explanation ?? "",
               ...node.tags,
               ...node.evidence.flatMap((item) => [item.label, item.ref, item.note ?? ""]),
+              ...node.comments.flatMap((comment) => [comment.authorName, comment.body]),
             ]
               .join(" ")
               .toLocaleLowerCase()
@@ -794,6 +806,76 @@ export function createNodebookTools(runtime: NodebookToolRuntime): NodebookTool[
           summary: `Added ${input.evidence.length} evidence ${input.evidence.length === 1 ? "item" : "items"} to ${node.title}.`,
         });
         return result({ changed: true, nodeId: node.id, evidenceCount: next.nodes[node.id].evidence.length });
+      },
+    },
+    {
+      name: "list_comments",
+      title: "List node comments",
+      description: "List human and agent comments attached to nodes, optionally filtered by node or map.",
+      inputSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          nodeId: { type: "string", minLength: 1, maxLength: 160 },
+          mapId: { type: "string", minLength: 1, maxLength: 160 },
+        },
+      },
+      annotations: { readOnlyHint: true, untrustedContentHint: true },
+      execute: (raw) => {
+        const input = listCommentsSchema.parse(raw);
+        const workspace = runtime.getSnapshot().workspace;
+        if (input.nodeId && !workspace.nodes[input.nodeId]) throw new Error(`Node ${input.nodeId} does not exist.`);
+        if (input.mapId && !workspace.maps[input.mapId]) throw new Error(`Map ${input.mapId} does not exist.`);
+        const comments = Object.values(workspace.nodes)
+          .filter((node) => !input.nodeId || node.id === input.nodeId)
+          .filter((node) => !input.mapId || node.mapId === input.mapId)
+          .flatMap((node) => node.comments.map((comment) => ({ ...comment, nodeId: node.id, nodeTitle: node.title })))
+          .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+        return result({ count: comments.length, comments });
+      },
+    },
+    {
+      name: "add_comment",
+      title: "Comment on a node",
+      description: "Add a comment to a node under the calling agent's name. Set agentName to your own identity.",
+      inputSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          nodeId: { type: "string", minLength: 1, maxLength: 160 },
+          body: { type: "string", minLength: 1, maxLength: MAX_COMMENT_LENGTH },
+          agentName: {
+            type: "string",
+            minLength: 1,
+            maxLength: 80,
+            description: "The agent's display name, such as Codex or Claude.",
+          },
+        },
+        required: ["nodeId", "body", "agentName"],
+      },
+      annotations: { readOnlyHint: false, untrustedContentHint: false },
+      execute: (raw) => {
+        const input = addCommentSchema.parse(raw);
+        const snapshot = runtime.getSnapshot();
+        const node = snapshot.workspace.nodes[input.nodeId];
+        if (!node) throw new Error(`Node ${input.nodeId} does not exist.`);
+        const next = cloneDocument(snapshot.workspace);
+        const createdAt = nowIso();
+        const comment = {
+          id: createId("comment"),
+          body: input.body,
+          authorKind: "agent" as const,
+          authorName: input.agentName,
+          createdAt,
+        };
+        next.nodes[node.id].comments.push(comment);
+        next.nodes[node.id].updatedAt = createdAt;
+        runtime.commitWorkspace(next, {
+          source: "agent",
+          action: "comment_added",
+          summary: `${comment.authorName} commented on ${node.title}.`,
+        });
+        return result({ nodeId: node.id, nodeTitle: node.title, comment });
       },
     },
     {

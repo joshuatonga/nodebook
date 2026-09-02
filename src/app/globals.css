@@ -935,6 +935,32 @@ button:disabled {
   color: var(--subtle-foreground);
 }
 
+.node-comment-action {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 3px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font-size: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.node-comment-action:hover,
+.node-comment-action:focus-visible,
+.node-comment-action.has-comments {
+  background: color-mix(in oklch, var(--status-agent) 11%, transparent);
+  color: var(--status-agent);
+  outline: 1px solid color-mix(in oklch, var(--status-agent) 28%, transparent);
+  outline-offset: 0;
+}
+
 .node-evidence-action,
 .node-source-action {
   border: 0;
@@ -1429,7 +1455,8 @@ button:disabled {
   border-top: 1px solid var(--line);
 }
 
-.evidence-section:focus {
+.evidence-section:focus,
+.comments-section:focus {
   outline: none;
 }
 
@@ -1549,6 +1576,83 @@ button:disabled {
 
 .evidence-form {
   margin-top: 4px;
+}
+
+.comment-list,
+.comment-form {
+  display: grid;
+  gap: 7px;
+}
+
+.comment-card {
+  display: grid;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.comment-card.agent {
+  border-color: color-mix(in oklch, var(--status-agent) 24%, var(--line));
+  background: color-mix(in oklch, var(--status-agent) 5%, var(--card));
+}
+
+.comment-card > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+}
+
+.comment-card time {
+  margin-left: auto;
+  color: var(--faint);
+  font-size: 8px;
+}
+
+.comment-avatar {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--secondary);
+  color: var(--muted-foreground);
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.comment-card.agent .comment-avatar {
+  background: var(--purple-light);
+  color: var(--status-agent);
+}
+
+.comment-card p {
+  margin: 0;
+  color: var(--card-foreground);
+  font-size: 9px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comment-form .text-area {
+  min-height: 64px;
+}
+
+.comment-form .inline-action {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.comment-shortcut {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
+  justify-self: end;
+  color: var(--faint);
+  font-size: 8px;
 }
 
 .danger-button {

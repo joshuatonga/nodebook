@@ -19,6 +19,13 @@ const evidenceSchema = z.object({
   addedBy: z.enum(["human", "agent", "system"]),
   createdAt: isoDate,
 });
+const commentSchema = z.object({
+  id,
+  body: z.string().min(1).max(10_000),
+  authorKind: z.enum(["human", "agent"]),
+  authorName: z.string().min(1).max(80),
+  createdAt: isoDate,
+});
 const quizSchema = z
   .object({
     choices: z.array(z.string().min(1).max(240)).min(2).max(6),
@@ -43,6 +50,7 @@ const nodeSchema = z.object({
   locked: z.boolean(),
   tags: z.array(z.string().min(1).max(48)).max(20),
   evidence: z.array(evidenceSchema).max(100),
+  comments: z.array(commentSchema).max(500),
   createdAt: isoDate,
   updatedAt: isoDate,
 });
@@ -85,8 +93,15 @@ export const workspaceDocumentSchema = z.object({
   updatedAt: isoDate,
 });
 
-const legacyWorkspaceDocumentSchema = workspaceDocumentSchema
-  .omit({ schemaVersion: true, activity: true })
+const legacyNodeSchema = nodeSchema.omit({ comments: true });
+const legacyWorkspaceBaseSchema = workspaceDocumentSchema.omit({ schemaVersion: true, nodes: true }).extend({
+  nodes: z.record(z.string(), legacyNodeSchema),
+});
+const legacyVersionOneWorkspaceSchema = legacyWorkspaceBaseSchema.extend({
+  schemaVersion: z.literal(1),
+});
+const legacyVersionZeroWorkspaceSchema = legacyWorkspaceBaseSchema
+  .omit({ activity: true })
   .extend({
     schemaVersion: z.literal(0),
     activity: z.array(activitySchema).max(100).optional(),
@@ -94,18 +109,43 @@ const legacyWorkspaceDocumentSchema = workspaceDocumentSchema
 
 export function migrateWorkspaceDocument(input: unknown): unknown {
   if (!input || typeof input !== "object" || !("schemaVersion" in input)) return input;
-  if ((input as { schemaVersion?: unknown }).schemaVersion !== 0) return input;
-  const legacy = legacyWorkspaceDocumentSchema.parse(input);
+  const version = (input as { schemaVersion?: unknown }).schemaVersion;
+  if (version === WORKSPACE_SCHEMA_VERSION) return input;
   const createdAt = nowIso();
+  if (version === 1) {
+    const legacy = legacyVersionOneWorkspaceSchema.parse(input);
+    return {
+      ...legacy,
+      schemaVersion: WORKSPACE_SCHEMA_VERSION,
+      nodes: Object.fromEntries(
+        Object.entries(legacy.nodes).map(([nodeId, node]) => [nodeId, { ...node, comments: [] }]),
+      ),
+      activity: [
+        {
+          id: createId("activity"),
+          source: "system",
+          action: "workspace_migrated",
+          summary: "Migrated this workspace to support node comments.",
+          createdAt,
+        },
+        ...legacy.activity,
+      ].slice(0, 100),
+    };
+  }
+  if (version !== 0) return input;
+  const legacy = legacyVersionZeroWorkspaceSchema.parse(input);
   return {
     ...legacy,
     schemaVersion: WORKSPACE_SCHEMA_VERSION,
+    nodes: Object.fromEntries(
+      Object.entries(legacy.nodes).map(([nodeId, node]) => [nodeId, { ...node, comments: [] }]),
+    ),
     activity: legacy.activity ?? [
       {
         id: createId("activity"),
         source: "system",
         action: "workspace_migrated",
-        summary: "Migrated this workspace to Nodebook schema version 1.",
+        summary: `Migrated this workspace to Nodebook schema version ${WORKSPACE_SCHEMA_VERSION}.`,
         createdAt,
       },
     ],

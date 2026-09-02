@@ -17,6 +17,22 @@ describe("workspace store", () => {
     expect(useWorkspaceStore.getState().workspace.nodes["feature-food"].title).toBe("Food diary");
   });
 
+  it("adds a human-attributed node comment as one reversible history step", () => {
+    useWorkspaceStore.getState().addHumanComment("feature-food", "Please verify the empty state.");
+    const comments = useWorkspaceStore.getState().workspace.nodes["feature-food"].comments;
+
+    expect(comments).toHaveLength(1);
+    expect(comments[0]).toMatchObject({
+      body: "Please verify the empty state.",
+      authorKind: "human",
+      authorName: "You",
+    });
+    expect(useWorkspaceStore.temporal.getState().pastStates).toHaveLength(1);
+
+    useWorkspaceStore.temporal.getState().undo();
+    expect(useWorkspaceStore.getState().workspace.nodes["feature-food"].comments).toEqual([]);
+  });
+
   it("creates and opens a blank canvas as one reversible history step", () => {
     const previousMapId = useWorkspaceStore.getState().workspace.activeMapId;
     const mapId = useWorkspaceStore.getState().addCanvas("blank");

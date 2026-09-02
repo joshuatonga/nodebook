@@ -13,6 +13,7 @@ import type {
   ScopeState,
   WorkspaceDocument,
 } from "@/lib/model";
+import { WORKSPACE_SCHEMA_VERSION } from "@/lib/model";
 
 const SOURCES = {
   freeFeatures:
@@ -75,6 +76,7 @@ function node(
     locked: options.locked ?? false,
     tags: options.tags ?? [],
     evidence: options.evidence ?? [],
+    comments: [],
     createdAt,
     updatedAt: createdAt,
   };
@@ -117,7 +119,7 @@ export function createBlankWorkspace(): WorkspaceDocument {
   const createdAt = nowIso();
   const mapId = createId("map");
   return {
-    schemaVersion: 1,
+    schemaVersion: WORKSPACE_SCHEMA_VERSION,
     id: createId("workspace"),
     name: "New workspace",
     activeMapId: mapId,
@@ -261,7 +263,7 @@ export function createDemoWorkspace(): WorkspaceDocument {
   const laidOutLearnNodes = layoutNodes(learnNodes, learnEdges, "TB");
 
   return {
-    schemaVersion: 1,
+    schemaVersion: WORKSPACE_SCHEMA_VERSION,
     id: "workspace-myfitnesspal-demo",
     name: "MyFitnessPal clone research",
     activeMapId: buildMapId,

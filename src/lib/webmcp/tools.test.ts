@@ -80,10 +80,12 @@ describe("Nodebook WebMCP tools", () => {
       "set_delivery_statuses",
       "set_learning_states",
       "add_evidence",
+      "list_comments",
+      "add_comment",
       "focus_nodes",
       "highlight_path",
     ]);
-    expect(calls).toHaveLength(13);
+    expect(calls).toHaveLength(15);
     expect(calls.every(({ tool }) => tool.inputSchema.additionalProperties === false)).toBe(true);
     expect(calls.filter(({ tool }) => tool.name.startsWith("get_")).every(({ tool }) => tool.annotations?.readOnlyHint)).toBe(true);
     expect(calls.every(({ signal }) => signal === controller.signal)).toBe(true);
@@ -225,5 +227,26 @@ describe("Nodebook WebMCP tools", () => {
     expect(fixture.getFocused()).toEqual(["trace-open", "trace-add", "trace-find"]);
     expect(fixture.getHighlight()).toEqual({ nodeIds: ["trace-open", "trace-add", "trace-find"], tone: "success" });
     expect(fixture.getWorkspace()).toEqual(original);
+  });
+
+  it("adds an agent-attributed comment and lists it with node context", () => {
+    const added = getTool(fixture.runtime, "add_comment").execute({
+      nodeId: "feature-food",
+      body: "We should validate the offline flow.",
+      agentName: "Codex",
+    }) as { structuredContent: { comment: { authorKind: string; authorName: string; body: string } } };
+
+    expect(added.structuredContent.comment).toMatchObject({
+      authorKind: "agent",
+      authorName: "Codex",
+      body: "We should validate the offline flow.",
+    });
+    const listed = getTool(fixture.runtime, "list_comments").execute({ nodeId: "feature-food" }) as {
+      structuredContent: { count: number; comments: Array<{ nodeId: string; authorName: string }> };
+    };
+    expect(listed.structuredContent).toMatchObject({
+      count: 1,
+      comments: [{ nodeId: "feature-food", authorName: "Codex" }],
+    });
   });
 });

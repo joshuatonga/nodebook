@@ -43,11 +43,12 @@ function colorForHighlight(tone: "focus" | "risk" | "success"): string {
 
 interface CanvasWorkspaceProps {
   isInspectorOpen: boolean;
+  onOpenComments: () => void;
   onOpenEvidence: () => void;
   onOpenInspector: () => void;
 }
 
-function CanvasInner({ isInspectorOpen, onOpenEvidence, onOpenInspector }: CanvasWorkspaceProps) {
+function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenInspector }: CanvasWorkspaceProps) {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const selectedNodeIds = useWorkspaceStore((state) => state.selectedNodeIds);
   const highlight = useWorkspaceStore((state) => state.highlight);
@@ -88,6 +89,13 @@ function CanvasInner({ isInspectorOpen, onOpenEvidence, onOpenInspector }: Canva
     },
     [onOpenEvidence, setSelection],
   );
+  const onOpenNodeComments = useCallback(
+    (nodeId: string) => {
+      setSelection([nodeId]);
+      onOpenComments();
+    },
+    [onOpenComments, setSelection],
+  );
 
   const projectedNodes = useMemo<SemanticFlowNode[]>(
     () =>
@@ -107,13 +115,14 @@ function CanvasInner({ isInspectorOpen, onOpenEvidence, onOpenInspector }: Canva
           appSelected: selectedNodeIds.includes(node.id),
           inspectorOpen: isInspectorOpen,
           onOpenDetails: onOpenInspector,
+          onOpenComments: onOpenNodeComments,
           onOpenEvidence: onOpenNodeEvidence,
         },
         draggable: true,
       })),
     // The primitive link fingerprint deliberately ignores viewport-only map updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hasVisibleHighlight, highlight?.tone, highlightedNodeIds, isInspectorOpen, mapLinksFingerprint, mapNodes, onOpenInspector, onOpenNodeEvidence, selectedNodeIds],
+    [hasVisibleHighlight, highlight?.tone, highlightedNodeIds, isInspectorOpen, mapLinksFingerprint, mapNodes, onOpenInspector, onOpenNodeComments, onOpenNodeEvidence, selectedNodeIds],
   );
   const [flowNodes, setFlowNodes] = useState<SemanticFlowNode[]>(projectedNodes);
 
@@ -265,13 +274,14 @@ function ViewportCommander({ commandId, nodeIds }: { commandId?: string; nodeIds
   return null;
 }
 
-export function CanvasWorkspace({ isInspectorOpen, onOpenEvidence, onOpenInspector }: CanvasWorkspaceProps) {
+export function CanvasWorkspace({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenInspector }: CanvasWorkspaceProps) {
   const activeMapId = useWorkspaceStore((state) => state.workspace.activeMapId);
   return (
     <div className="canvas-shell">
       <ReactFlowProvider key={activeMapId}>
         <CanvasInner
           isInspectorOpen={isInspectorOpen}
+          onOpenComments={onOpenComments}
           onOpenEvidence={onOpenEvidence}
           onOpenInspector={onOpenInspector}
         />

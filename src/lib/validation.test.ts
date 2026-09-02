@@ -21,8 +21,19 @@ describe("workspace imports and migrations", () => {
     delete legacy.activity;
     const migrated = parseWorkspaceDocument(legacy);
 
-    expect(migrated.schemaVersion).toBe(1);
+    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.nodes["feature-food"].comments).toEqual([]);
     expect(migrated.activity[0].action).toBe("workspace_migrated");
+  });
+
+  it("migrates version one documents with an empty comment history", () => {
+    const workspace = createDemoWorkspace();
+    const nodes = structuredClone(workspace.nodes) as Record<string, { comments?: unknown }>;
+    for (const node of Object.values(nodes)) delete node.comments;
+    const migrated = parseWorkspaceDocument({ ...workspace, schemaVersion: 1, nodes });
+
+    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.nodes["feature-food"].comments).toEqual([]);
   });
 
   it("rejects unsafe source URLs and broken graph references", () => {
