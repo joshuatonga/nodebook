@@ -770,6 +770,40 @@ button:disabled {
   color: var(--subtle-foreground);
 }
 
+.node-evidence-action,
+.node-source-action {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: none;
+}
+
+.node-evidence-action {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  place-items: center;
+  border-radius: 4px;
+}
+
+.node-source-action {
+  padding: 2px 3px;
+  border-radius: 3px;
+}
+
+.node-evidence-action:hover,
+.node-evidence-action:focus-visible,
+.node-source-action:hover,
+.node-source-action:focus-visible {
+  background: color-mix(in oklch, var(--ring) 10%, transparent);
+  color: var(--ring);
+  outline: 1px solid color-mix(in oklch, var(--ring) 28%, transparent);
+  outline-offset: 0;
+}
+
 .node-details-button {
   display: inline-flex;
   align-items: center;
@@ -1228,6 +1262,10 @@ button:disabled {
   gap: 8px;
   padding: 14px 0;
   border-top: 1px solid var(--line);
+}
+
+.evidence-section:focus {
+  outline: none;
 }
 
 .field-label {

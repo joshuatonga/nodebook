@@ -13,12 +13,12 @@ import {
   Trash2,
   UnlockKeyhole,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createId, nowIso } from "@/lib/ids";
 import { linkedMapsForNode } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
 
-export function Inspector() {
+export function Inspector({ evidenceFocusRequest = 0 }: { evidenceFocusRequest?: number }) {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const selectedNodeIds = useWorkspaceStore((state) => state.selectedNodeIds);
   const pendingIntent = useWorkspaceStore((state) => state.pendingIntent);
@@ -30,10 +30,20 @@ export function Inspector() {
   const addHumanEvidence = useWorkspaceStore((state) => state.addHumanEvidence);
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [evidenceLabel, setEvidenceLabel] = useState("");
+  const evidenceSectionRef = useRef<HTMLElement>(null);
   const selectedNodes = useMemo(
     () => selectedNodeIds.flatMap((id) => (workspace.nodes[id] ? [workspace.nodes[id]] : [])),
     [selectedNodeIds, workspace.nodes],
   );
+
+  useEffect(() => {
+    if (evidenceFocusRequest === 0) return;
+    const frame = window.requestAnimationFrame(() => {
+      evidenceSectionRef.current?.focus({ preventScroll: true });
+      evidenceSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [evidenceFocusRequest]);
 
   if (selectedNodes.length === 0) {
     return (
@@ -197,7 +207,12 @@ export function Inspector() {
 
       <LinkedMaps nodeId={node.id} onOpen={activateMap} workspace={workspace} />
 
-      <section className="inspector-section evidence-section">
+      <section
+        aria-label="Evidence"
+        className="inspector-section evidence-section"
+        ref={evidenceSectionRef}
+        tabIndex={-1}
+      >
         <div className="section-heading">
           <span>Evidence</span>
           <small>{node.evidence.length}</small>

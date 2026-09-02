@@ -13,6 +13,7 @@ export interface SemanticNodeData extends Record<string, unknown> {
   appSelected?: boolean;
   inspectorOpen?: boolean;
   onOpenDetails?: () => void;
+  onOpenEvidence?: (nodeId: string) => void;
 }
 
 export type SemanticFlowNode = Node<SemanticNodeData, "semantic">;
@@ -22,6 +23,57 @@ function labelForNode(node: CanvasNode): string | null {
   if (["concept", "exercise", "question"].includes(node.kind) && node.learningState) return node.learningState;
   if (node.deliveryStatus && node.deliveryStatus !== "not_started") return node.deliveryStatus.replace("_", " ");
   return null;
+}
+
+function NodeEvidenceAction({
+  compact = false,
+  node,
+  onOpenEvidence,
+}: {
+  compact?: boolean;
+  node: CanvasNode;
+  onOpenEvidence?: (nodeId: string) => void;
+}) {
+  if (node.evidence.length === 0) return null;
+  const singleSource =
+    node.evidence.length === 1 && node.evidence[0].kind === "source_url" ? node.evidence[0] : null;
+  const allSources = node.evidence.every((evidence) => evidence.kind === "source_url");
+  const countLabel = allSources
+    ? `${node.evidence.length} ${node.evidence.length === 1 ? "source" : "sources"}`
+    : `${node.evidence.length} evidence`;
+  const className = `${compact ? "node-source-action" : "node-evidence-action"} nodrag nopan`;
+
+  if (singleSource) {
+    return (
+      <a
+        aria-label={compact ? `Open ${countLabel} for ${node.title}: ${singleSource.label}` : `Open source: ${singleSource.label}`}
+        className={className}
+        href={singleSource.ref}
+        onClick={(event) => event.stopPropagation()}
+        rel="noopener noreferrer"
+        target="_blank"
+        title={`Open ${singleSource.label} in a new tab`}
+      >
+        {compact ? countLabel : <ExternalLink aria-hidden="true" size={12} />}
+      </a>
+    );
+  }
+
+  return (
+    <button
+      aria-controls="inspector-panel"
+      aria-label={compact ? `View ${countLabel} for ${node.title}` : `View evidence for ${node.title}`}
+      className={className}
+      onClick={(event) => {
+        event.stopPropagation();
+        onOpenEvidence?.(node.id);
+      }}
+      title="View evidence in Details"
+      type="button"
+    >
+      {compact ? countLabel : <ExternalLink aria-hidden="true" size={12} />}
+    </button>
+  );
 }
 
 function SemanticNodeView({ data, selected }: NodeProps<SemanticFlowNode>) {
@@ -67,7 +119,7 @@ function SemanticNodeView({ data, selected }: NodeProps<SemanticFlowNode>) {
       <div className="node-card-header">
         <span className="node-kind">{node.kind === "question" ? "quiz" : node.kind}</span>
         <span className="node-card-icons">
-          {node.evidence.length > 0 ? <ExternalLink aria-label={`${node.evidence.length} evidence items`} size={12} /> : null}
+          <NodeEvidenceAction node={node} onOpenEvidence={data.onOpenEvidence} />
           {linkedMapCount > 0 ? <GitBranch aria-label={`${linkedMapCount} linked maps`} size={12} /> : null}
           {node.locked ? <LockKeyhole aria-label="Locked" size={12} /> : null}
           {isSelected ? (
@@ -161,7 +213,7 @@ function SemanticNodeView({ data, selected }: NodeProps<SemanticFlowNode>) {
       {node.kind === "question" && node.quiz ? <QuizChoices quiz={node.quiz} /> : null}
       <div className="node-card-footer">
         {stateLabel ? <span className={`state-chip ${node.scopeState ?? node.learningState ?? node.deliveryStatus}`}>{stateLabel}</span> : <span />}
-        {node.evidence.length > 0 ? <span>{node.evidence.length} {node.evidence.length === 1 ? "source" : "sources"}</span> : null}
+        <NodeEvidenceAction compact node={node} onOpenEvidence={data.onOpenEvidence} />
       </div>
       <Handle className="node-handle" position={Position.Right} type="source" />
     </article>

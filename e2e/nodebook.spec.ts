@@ -133,6 +133,40 @@ test("selected nodes expose a contextual details action", async ({ page }) => {
   await expect(page.getByRole("complementary", { name: "Inspector" }).getByRole("heading", { name: "Nutrition coach" })).toBeVisible();
 });
 
+test("node evidence opens a single source externally and aggregates multiple sources in Details", async ({ page }) => {
+  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  const node = page.locator(".semantic-node").filter({
+    has: page.getByRole("heading", { name: "Nutrition coach", exact: true }),
+  });
+  const sourceLink = node.getByRole("link", { name: "Open source: MyFitnessPal Nutrition Coach" });
+
+  await expect(sourceLink).toHaveAttribute("target", "_blank");
+  await expect(sourceLink).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(
+    node.getByRole("link", { name: "Open 1 source for Nutrition coach: MyFitnessPal Nutrition Coach" }),
+  ).toBeVisible();
+  const popupPromise = page.waitForEvent("popup");
+  await sourceLink.click();
+  const popup = await popupPromise;
+  await expect(popup).toHaveURL(/support\.myfitnesspal\.com/);
+  await popup.close();
+
+  await node.getByRole("heading", { name: "Nutrition coach", exact: true }).click();
+  await node.getByRole("button", { name: "Open details for Nutrition coach" }).click();
+  const inspector = page.getByRole("complementary", { name: "Inspector" });
+  await inspector.getByPlaceholder("Source label").fill("Supporting research");
+  await inspector.getByPlaceholder("https://…").fill("https://example.com/research");
+  await inspector.getByRole("button", { name: "Add source" }).click();
+  await page.getByRole("button", { name: "Close inspector" }).click();
+
+  await expect(node.getByRole("button", { name: "View 2 sources for Nutrition coach" })).toBeVisible();
+  await page.getByRole("heading", { name: "Barcode & meal scan", exact: true }).click();
+  await node.getByRole("button", { name: "View evidence for Nutrition coach" }).click();
+  await expect(inspector).toBeVisible();
+  await expect(inspector.getByRole("heading", { name: "Nutrition coach", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Evidence" })).toBeFocused();
+});
+
 test("quiz nodes reveal the correct answer after a learner chooses", async ({ page }) => {
   await page.getByRole("button", { name: "Load source-backed demo" }).click();
   await page.getByLabel("Workspace navigation").getByRole("button", { name: "Understanding macronutrients" }).click();

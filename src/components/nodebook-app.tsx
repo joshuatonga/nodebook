@@ -16,8 +16,16 @@ export function NodebookApp() {
   const hydrated = useWorkspaceStore((state) => state.hydrated);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+  const [evidenceFocusRequest, setEvidenceFocusRequest] = useState(0);
   const shouldReduceMotion = useReducedMotion();
-  const openInspector = useCallback(() => setIsInspectorOpen(true), []);
+  const openInspector = useCallback(() => {
+    setEvidenceFocusRequest(0);
+    setIsInspectorOpen(true);
+  }, []);
+  const openEvidence = useCallback(() => {
+    setEvidenceFocusRequest((request) => request + 1);
+    setIsInspectorOpen(true);
+  }, []);
 
   if (!hydrated) {
     return (
@@ -58,10 +66,17 @@ export function NodebookApp() {
           <Topbar
             isInspectorOpen={isInspectorOpen}
             isSidebarOpen={isSidebarOpen}
-            onToggleInspector={() => setIsInspectorOpen((isOpen) => !isOpen)}
+            onToggleInspector={() => {
+              setEvidenceFocusRequest(0);
+              setIsInspectorOpen((isOpen) => !isOpen);
+            }}
             onToggleSidebar={() => setIsSidebarOpen((isOpen) => !isOpen)}
           />
-          <CanvasWorkspace isInspectorOpen={isInspectorOpen} onOpenInspector={openInspector} />
+          <CanvasWorkspace
+            isInspectorOpen={isInspectorOpen}
+            onOpenEvidence={openEvidence}
+            onOpenInspector={openInspector}
+          />
         </section>
         <motion.div
           animate={{ width: isInspectorOpen ? 298 : 0 }}
@@ -81,7 +96,7 @@ export function NodebookApp() {
                 key="inspector"
                 transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
               >
-                <Inspector />
+                <Inspector evidenceFocusRequest={evidenceFocusRequest} />
               </motion.div>
             ) : null}
           </AnimatePresence>
