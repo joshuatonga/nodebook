@@ -153,7 +153,7 @@ export function Topbar({ isInspectorOpen, isSidebarOpen, onToggleInspector, onTo
         <div className="map-actions">
           {progress.proposed > 0 ? (
             <button className="toolbar-button" onClick={acceptAllProposed} type="button">
-              <CheckCheck size={15} /> Accept proposed
+              <CheckCheck size={15} /> Accept all proposed
             </button>
           ) : null}
           <button className="toolbar-button primary" onClick={addManualNode} type="button">
