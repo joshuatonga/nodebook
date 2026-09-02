@@ -1511,9 +1511,23 @@ button:disabled {
   line-height: 1.55;
 }
 
-.empty-canvas code {
-  display: block;
+.empty-canvas-prompt {
   margin-bottom: 18px;
+  text-align: left;
+}
+
+.empty-canvas-prompt > span {
+  display: block;
+  margin: 0 0 6px 2px;
+  color: var(--muted-foreground);
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.empty-canvas-prompt code {
+  display: block;
   padding: 11px 12px;
   border: 1px solid var(--border);
   border-radius: 7px;
@@ -1525,7 +1539,7 @@ button:disabled {
   text-align: left;
 }
 
-.empty-canvas > div {
+.empty-canvas-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;

@@ -24,6 +24,7 @@ import {
 import { Focus, GitBranch, LayoutDashboard, MousePointer2, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { SemanticNode, type SemanticFlowNode } from "@/components/canvas/semantic-node";
+import { canvasEmptyStates } from "@/lib/canvas-empty-state";
 import { layoutNodes } from "@/lib/layout";
 import { linkedMapsForNode } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
@@ -366,6 +367,7 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
   if (!activeMap) {
     return <div className="canvas-error">This map no longer exists. Undo the last change or import a valid workspace.</div>;
   }
+  const emptyState = canvasEmptyStates[activeMap.kind];
 
   return (
     <ReactFlow
@@ -427,12 +429,15 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
       </Panel>
       {mapNodes.length === 0 ? (
         <Panel className="empty-canvas" position="top-center">
-          <span className="eyebrow">Blank workspace</span>
-          <h1>Map a product with your agent.</h1>
-          <p>Ask your external agent to research the product, then let it create a durable, cited map here through WebMCP.</p>
-          <code>Research MyFitnessPal and map the features we’d need for a clone.</code>
-          <div>
-            <button className="toolbar-button" onClick={() => addManualNode()} type="button"><Plus size={15} /> Add your first node</button>
+          <span className="eyebrow">{emptyState.eyebrow}</span>
+          <h1>{emptyState.title}</h1>
+          <p>{emptyState.description}</p>
+          <div className="empty-canvas-prompt">
+            <span>Example prompt</span>
+            <code>{emptyState.examplePrompt}</code>
+          </div>
+          <div className="empty-canvas-actions">
+            <button className="toolbar-button" onClick={() => addManualNode()} type="button"><Plus size={15} /> {emptyState.addLabel}</button>
             <button className="toolbar-button primary" onClick={loadDemoWorkspace} type="button">Load source-backed demo</button>
           </div>
         </Panel>
