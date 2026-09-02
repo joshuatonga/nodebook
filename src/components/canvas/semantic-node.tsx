@@ -1,7 +1,7 @@
 "use client";
 
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
-import { CheckCircle2, ExternalLink, GitBranch, LockKeyhole, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, ExternalLink, GitBranch, LockKeyhole, PanelRightOpen, RotateCcw, XCircle } from "lucide-react";
 import { memo, useLayoutEffect, useRef, useState } from "react";
 import type { CanvasNode, QuizContent } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
@@ -11,6 +11,8 @@ export interface SemanticNodeData extends Record<string, unknown> {
   linkedMapCount: number;
   highlighted?: "focus" | "risk" | "success";
   appSelected?: boolean;
+  inspectorOpen?: boolean;
+  onOpenDetails?: () => void;
 }
 
 export type SemanticFlowNode = Node<SemanticNodeData, "semantic">;
@@ -68,6 +70,21 @@ function SemanticNodeView({ data, selected }: NodeProps<SemanticFlowNode>) {
           {node.evidence.length > 0 ? <ExternalLink aria-label={`${node.evidence.length} evidence items`} size={12} /> : null}
           {linkedMapCount > 0 ? <GitBranch aria-label={`${linkedMapCount} linked maps`} size={12} /> : null}
           {node.locked ? <LockKeyhole aria-label="Locked" size={12} /> : null}
+          {isSelected ? (
+            <button
+              aria-controls="inspector-panel"
+              aria-expanded={data.inspectorOpen}
+              aria-label={`Open details for ${node.title}`}
+              className={`node-details-button nodrag nopan ${data.inspectorOpen ? "active" : ""}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                data.onOpenDetails?.();
+              }}
+              type="button"
+            >
+              <PanelRightOpen aria-hidden="true" size={10} /> Details
+            </button>
+          ) : null}
         </span>
       </div>
       <h3 aria-label={node.title}>

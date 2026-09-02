@@ -115,6 +115,24 @@ test("selected nodes support direct title and description editing", async ({ pag
   await expect(page.getByText("Log meals and snacks from the canvas.", { exact: true })).toBeVisible();
 });
 
+test("selected nodes expose a contextual details action", async ({ page }) => {
+  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  const node = page.locator(".semantic-node").filter({
+    has: page.getByRole("heading", { name: "Nutrition coach", exact: true }),
+  });
+
+  await expect(node.getByRole("button", { name: "Open details for Nutrition coach" })).toHaveCount(0);
+  await node.getByRole("heading", { name: "Nutrition coach", exact: true }).click();
+  const detailsButton = node.getByRole("button", { name: "Open details for Nutrition coach" });
+  await expect(detailsButton).toBeVisible();
+  await expect(detailsButton).toHaveText(/Details/);
+
+  await detailsButton.click();
+  await expect(detailsButton).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("complementary", { name: "Inspector" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Inspector" }).getByRole("heading", { name: "Nutrition coach" })).toBeVisible();
+});
+
 test("quiz nodes reveal the correct answer after a learner chooses", async ({ page }) => {
   await page.getByRole("button", { name: "Load source-backed demo" }).click();
   await page.getByLabel("Workspace navigation").getByRole("button", { name: "Understanding macronutrients" }).click();

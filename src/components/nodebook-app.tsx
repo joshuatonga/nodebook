@@ -8,7 +8,7 @@ import { useWebMcp } from "@/hooks/use-webmcp";
 import { useWorkspacePersistence } from "@/hooks/use-workspace-persistence";
 import { useWorkspaceStore } from "@/lib/store";
 import { AnimatePresence, motion, MotionConfig, useReducedMotion } from "motion/react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export function NodebookApp() {
   useWorkspacePersistence();
@@ -17,6 +17,7 @@ export function NodebookApp() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
+  const openInspector = useCallback(() => setIsInspectorOpen(true), []);
 
   if (!hydrated) {
     return (
@@ -60,7 +61,7 @@ export function NodebookApp() {
             onToggleInspector={() => setIsInspectorOpen((isOpen) => !isOpen)}
             onToggleSidebar={() => setIsSidebarOpen((isOpen) => !isOpen)}
           />
-          <CanvasWorkspace />
+          <CanvasWorkspace isInspectorOpen={isInspectorOpen} onOpenInspector={openInspector} />
         </section>
         <motion.div
           animate={{ width: isInspectorOpen ? 298 : 0 }}

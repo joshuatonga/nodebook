@@ -41,7 +41,12 @@ function colorForHighlight(tone: "focus" | "risk" | "success"): string {
   return "var(--chart-2)";
 }
 
-function CanvasInner() {
+interface CanvasWorkspaceProps {
+  isInspectorOpen: boolean;
+  onOpenInspector: () => void;
+}
+
+function CanvasInner({ isInspectorOpen, onOpenInspector }: CanvasWorkspaceProps) {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const selectedNodeIds = useWorkspaceStore((state) => state.selectedNodeIds);
   const highlight = useWorkspaceStore((state) => state.highlight);
@@ -92,12 +97,14 @@ function CanvasInner() {
           linkedMapCount: linkedMapsForNode(workspace, node.id).length,
           highlighted: highlightedNodeIds.has(node.id) ? highlight?.tone : undefined,
           appSelected: selectedNodeIds.includes(node.id),
+          inspectorOpen: isInspectorOpen,
+          onOpenDetails: onOpenInspector,
         },
         draggable: true,
       })),
     // The primitive link fingerprint deliberately ignores viewport-only map updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hasVisibleHighlight, highlight?.tone, highlightedNodeIds, mapLinksFingerprint, mapNodes, selectedNodeIds],
+    [hasVisibleHighlight, highlight?.tone, highlightedNodeIds, isInspectorOpen, mapLinksFingerprint, mapNodes, onOpenInspector, selectedNodeIds],
   );
   const [flowNodes, setFlowNodes] = useState<SemanticFlowNode[]>(projectedNodes);
 
@@ -249,12 +256,12 @@ function ViewportCommander({ commandId, nodeIds }: { commandId?: string; nodeIds
   return null;
 }
 
-export function CanvasWorkspace() {
+export function CanvasWorkspace({ isInspectorOpen, onOpenInspector }: CanvasWorkspaceProps) {
   const activeMapId = useWorkspaceStore((state) => state.workspace.activeMapId);
   return (
     <div className="canvas-shell">
       <ReactFlowProvider key={activeMapId}>
-        <CanvasInner />
+        <CanvasInner isInspectorOpen={isInspectorOpen} onOpenInspector={onOpenInspector} />
       </ReactFlowProvider>
     </div>
   );

@@ -770,6 +770,35 @@ button:disabled {
   color: var(--subtle-foreground);
 }
 
+.node-details-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 5px;
+  border: 1px solid color-mix(in oklch, var(--ring) 22%, var(--border));
+  border-radius: 4px;
+  background: color-mix(in oklch, var(--ring) 7%, var(--card));
+  color: var(--muted-foreground);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+  line-height: 1;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.node-details-button:hover,
+.node-details-button:focus-visible,
+.node-details-button.active {
+  border-color: color-mix(in oklch, var(--ring) 46%, var(--border));
+  background: color-mix(in oklch, var(--ring) 13%, var(--card));
+  color: var(--ring);
+}
+
+.node-details-button:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--ring) 24%, transparent);
+  outline-offset: 1px;
+}
+
 .semantic-node h3 {
   margin: 9px 0 5px;
   font-size: 12px;
