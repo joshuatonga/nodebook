@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Boxes, GitBranch, GraduationCap, Plus, Square } from "lucide-react";
+import { BookOpen, Boxes, GitBranch, GraduationCap, Plus, Square, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MapKind } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
@@ -18,6 +18,7 @@ export function Sidebar() {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const addCanvas = useWorkspaceStore((state) => state.addCanvas);
   const activateMap = useWorkspaceStore((state) => state.activateMap);
+  const deleteCanvas = useWorkspaceStore((state) => state.deleteCanvas);
   const createNewWorkspace = useWorkspaceStore((state) => state.createNewWorkspace);
   const loadDemoWorkspace = useWorkspaceStore((state) => state.loadDemoWorkspace);
   const [isTypePickerOpen, setIsTypePickerOpen] = useState(false);
@@ -103,21 +104,36 @@ export function Sidebar() {
           {maps.map((map) => {
             const { icon: Icon, label } = mapMeta[map.kind];
             return (
-              <button
-                className={`map-link ${workspace.activeMapId === map.id ? "active" : ""}`}
-                data-map-kind={map.kind}
-                key={map.id}
-                onClick={() => activateMap(map.id)}
-                type="button"
-              >
-                <span aria-hidden="true" className={`map-kind-indicator ${map.kind}`} title={`${label} canvas`}>
-                  <Icon size={14} strokeWidth={1.9} />
-                </span>
-                <span className="map-link-copy">
-                  <span className="map-link-title">{map.title}</span>
-                  <span aria-hidden="true" className="map-link-kind">{label}</span>
-                </span>
-              </button>
+              <div className="map-row" key={map.id}>
+                <button
+                  className={`map-link ${workspace.activeMapId === map.id ? "active" : ""}`}
+                  data-map-kind={map.kind}
+                  onClick={() => activateMap(map.id)}
+                  type="button"
+                >
+                  <span aria-hidden="true" className={`map-kind-indicator ${map.kind}`} title={`${label} canvas`}>
+                    <Icon size={14} strokeWidth={1.9} />
+                  </span>
+                  <span className="map-link-copy">
+                    <span className="map-link-title" id={`map-title-${map.id}`}>{map.title}</span>
+                    <span aria-hidden="true" className="map-link-kind">{label}</span>
+                  </span>
+                </button>
+                <button
+                  aria-describedby={`map-title-${map.id}`}
+                  aria-label="Delete canvas"
+                  className="map-delete-button"
+                  onClick={() => {
+                    if (window.confirm(`Delete “${map.title}”? Its nodes and linked canvases will also be deleted.`)) {
+                      deleteCanvas(map.id);
+                    }
+                  }}
+                  title={`Delete ${map.title}`}
+                  type="button"
+                >
+                  <Trash2 size={14} strokeWidth={1.8} />
+                </button>
+              </div>
             );
           })}
         </div>

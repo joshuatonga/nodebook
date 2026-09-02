@@ -43,6 +43,21 @@ describe("workspace store", () => {
     expect(useWorkspaceStore.getState().workspace.maps["map-myfitnesspal-build"].title).toBe("Feature scope");
   });
 
+  it("deletes a canvas and its linked descendants, then restores them on undo", () => {
+    useWorkspaceStore.getState().deleteCanvas("map-myfitnesspal-build");
+    const state = useWorkspaceStore.getState();
+
+    expect(Object.values(state.workspace.maps)).toHaveLength(1);
+    expect(Object.values(state.workspace.maps)[0].kind).toBe("blank");
+    expect(Object.keys(state.workspace.nodes)).toHaveLength(0);
+    expect(Object.keys(state.workspace.edges)).toHaveLength(0);
+
+    useWorkspaceStore.temporal.getState().undo();
+    expect(useWorkspaceStore.getState().workspace.maps["map-myfitnesspal-build"]).toBeDefined();
+    expect(useWorkspaceStore.getState().workspace.maps["map-food-logging-trace"]).toBeDefined();
+    expect(useWorkspaceStore.getState().workspace.maps["map-macros-learn"]).toBeDefined();
+  });
+
   it("deletes linked maps with an originating node and restores them on undo", () => {
     useWorkspaceStore.getState().deleteNodes(["feature-food"]);
     expect(useWorkspaceStore.getState().workspace.maps["map-food-logging-trace"]).toBeUndefined();

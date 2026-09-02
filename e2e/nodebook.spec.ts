@@ -50,6 +50,22 @@ test("creates and opens a canvas from the sidebar", async ({ page }) => {
   await expect(sidebar.getByRole("button", { name: "Ideas" })).toHaveAttribute("data-map-kind", "blank");
 });
 
+test("deletes a canvas from its hover action and supports undo", async ({ page }) => {
+  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  const sidebar = page.getByRole("complementary", { name: "Workspace navigation" });
+  const canvas = sidebar.getByRole("button", { name: "Food logging journey" });
+
+  await canvas.hover();
+  const deleteButton = canvas.locator("..").getByRole("button", { name: "Delete canvas" });
+  await expect(deleteButton).toBeVisible();
+  page.once("dialog", (dialog) => dialog.accept());
+  await deleteButton.click();
+  await expect(canvas).not.toBeVisible();
+
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(sidebar.getByRole("button", { name: "Food logging journey" })).toBeVisible();
+});
+
 test("demo supports scope review, trace intent, linked maps, undo, and reload persistence", async ({ page }) => {
   await page.getByRole("button", { name: "Load source-backed demo" }).click();
   await expect(page.getByText("MyFitnessPal-style tracker")).toBeVisible();

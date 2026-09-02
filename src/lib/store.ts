@@ -32,6 +32,7 @@ interface WorkspaceStore {
   commitWorkspace: (workspace: WorkspaceDocument, activity: ActivityDescriptor) => void;
   addCanvas: (kind: MapKind) => string;
   renameCanvas: (mapId: string, title: string) => void;
+  deleteCanvas: (mapId: string) => void;
   activateMap: (mapId: string) => void;
   updateMapViewport: (mapId: string, viewport: CanvasMap["viewport"]) => void;
   setSelection: (nodeIds: string[]) => void;
@@ -221,6 +222,52 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
             action: "canvas_renamed",
             summary: `Renamed ${existing.title} to ${nextTitle}.`,
           }),
+        });
+      },
+
+      deleteCanvas: (mapId) => {
+        const workspace = get().workspace;
+        const canvas = workspace.maps[mapId];
+        if (!canvas) return;
+
+        const canvasNodeIds = Object.values(workspace.nodes)
+          .filter((node) => node.mapId === mapId)
+          .map((node) => node.id);
+        const next = cascadeDelete(workspace, canvasNodeIds);
+        delete next.maps[mapId];
+        for (const [edgeId, edge] of Object.entries(next.edges)) {
+          if (edge.mapId === mapId) delete next.edges[edgeId];
+        }
+
+        const deletedCanvasCount = Object.keys(workspace.maps).length - Object.keys(next.maps).length;
+        if (Object.keys(next.maps).length === 0) {
+          const fallbackId = createId("map");
+          const createdAt = nowIso();
+          next.maps[fallbackId] = {
+            id: fallbackId,
+            title: "Untitled canvas",
+            kind: "blank",
+            viewport: { x: 0, y: 0, zoom: 0.9 },
+            createdAt,
+            updatedAt: createdAt,
+          };
+          next.activeMapId = fallbackId;
+        } else if (!next.maps[next.activeMapId]) {
+          next.activeMapId = Object.values(next.maps).sort((left, right) =>
+            right.createdAt.localeCompare(left.createdAt),
+          )[0].id;
+        }
+
+        set({
+          workspace: withActivity(next, {
+            source: "human",
+            action: "canvas_deleted",
+            summary: `Deleted ${canvas.title}${deletedCanvasCount > 1 ? ` and ${deletedCanvasCount - 1} linked ${deletedCanvasCount === 2 ? "canvas" : "canvases"}` : ""}.`,
+          }),
+          selectedNodeIds: [],
+          pendingIntent: null,
+          highlight: null,
+          viewportCommand: null,
         });
       },
 

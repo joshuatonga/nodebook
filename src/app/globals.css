@@ -373,6 +373,11 @@ button:disabled {
   gap: 3px;
 }
 
+.map-row {
+  position: relative;
+  min-width: 0;
+}
+
 .map-link {
   display: grid;
   width: 100%;
@@ -388,7 +393,44 @@ button:disabled {
   color: var(--sidebar-foreground);
   font-size: 11px;
   text-align: left;
-  transition: background 120ms ease, color 120ms ease;
+  transition: padding 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.map-row:hover .map-link,
+.map-row:focus-within .map-link {
+  padding-right: 40px;
+}
+
+.map-delete-button {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 6px;
+  opacity: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.map-row:hover .map-delete-button,
+.map-row:focus-within .map-delete-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.map-delete-button:hover,
+.map-delete-button:focus-visible {
+  outline: none;
+  background: var(--red-light);
+  color: var(--red);
 }
 
 .map-kind-indicator {
