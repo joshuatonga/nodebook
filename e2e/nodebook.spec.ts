@@ -68,7 +68,7 @@ test("creates and opens a canvas from the sidebar", async ({ page }) => {
   await expect(sidebar.getByRole("button", { name: "Ideas" })).toHaveAttribute("data-map-kind", "blank");
 });
 
-test("creates connected nodes beside a selection or at a clicked canvas position", async ({ page }) => {
+test("canvas clicks deselect a node before offering to create another", async ({ page }) => {
   await page.getByRole("button", { name: "Add your first feature" }).click();
   const canvas = page.getByRole("application");
   const firstNode = canvas.getByRole("heading", { name: "New feature", exact: true });
@@ -81,9 +81,15 @@ test("creates connected nodes beside a selection or at a clicked canvas position
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(canvas.getByRole("heading", { name: "New feature", exact: true })).toHaveCount(1);
   await firstNode.click();
+  await expect(canvas.getByRole("button", { name: "Edit title" })).toBeVisible();
 
   await page.locator(".react-flow__pane").click({ position: { x: 600, y: 440 } });
   const createMenu = page.getByRole("dialog", { name: "Create node" });
+  await expect(createMenu).not.toBeVisible();
+  await expect(canvas.getByRole("button", { name: "Edit title" })).not.toBeVisible();
+
+  await firstNode.click();
+  await page.locator(".react-flow__pane").click({ button: "right", position: { x: 600, y: 440 } });
   await expect(createMenu).toBeVisible();
   await createMenu.getByRole("button", { name: /Add & connect.*From New feature/ }).click();
 

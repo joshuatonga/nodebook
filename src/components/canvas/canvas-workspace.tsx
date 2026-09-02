@@ -338,6 +338,18 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
     [screenToFlowPosition, selectedNodeIds],
   );
 
+  const handlePaneClick = useCallback(
+    (event: ReactMouseEvent) => {
+      setCreateMenu(null);
+      if (selectedNodeIds.length > 0) {
+        setSelection([]);
+        return;
+      }
+      openCreateMenu(event);
+    },
+    [openCreateMenu, selectedNodeIds, setSelection],
+  );
+
   useEffect(() => {
     if (!createMenu) return;
     createActionRef.current?.focus();
@@ -394,7 +406,7 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
       onNodesChange={onNodesChange}
       onEdgesDelete={(edges) => deleteEdges(edges.map((edge) => edge.id))}
       onNodesDelete={(nodes) => deleteNodes(nodes.map((node) => node.id))}
-      onPaneClick={openCreateMenu}
+      onPaneClick={handlePaneClick}
       onPaneContextMenu={openCreateMenu}
       selectionOnDrag
       snapGrid={[12, 12]}
@@ -410,7 +422,8 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
       />
       <Controls position="bottom-center" showInteractive={false} />
       <Panel className="canvas-create-hint" position="bottom-left">
-        <MousePointer2 aria-hidden="true" size={13} /> Click the canvas to add a node
+        <MousePointer2 aria-hidden="true" size={13} />
+        {selectedNodeIds.length > 0 ? "Click the canvas to deselect" : "Click the canvas to add a node"}
       </Panel>
       <Panel className="canvas-tools" position="top-right">
         <button onClick={autoLayout} title="Auto-layout this map" type="button">
