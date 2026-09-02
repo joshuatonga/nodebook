@@ -12,7 +12,7 @@ Each map has one semantic purpose:
 
 - `build`: researched features, human scope, and delivery status
 - `trace`: journeys, system flows, and implementation paths
-- `learn`: concepts, prerequisites, examples, questions, and exercises
+- `learn`: concepts, prerequisites, examples, interactive multiple-choice quizzes, and exercises
 
 A child map points to its originating node with `parentNodeId`. That relationship produces both sidebar navigation and semantic breadcrumbs without crowding everything onto one graph.
 

@@ -9,6 +9,7 @@ import type {
   LearningState,
   MapKind,
   NodeKind,
+  QuizContent,
   ScopeState,
   WorkspaceDocument,
 } from "@/lib/model";
@@ -45,6 +46,7 @@ interface NodeOptions {
   scopeState?: ScopeState;
   deliveryStatus?: DeliveryStatus;
   learningState?: LearningState;
+  quiz?: QuizContent;
   locked?: boolean;
   tags?: string[];
   evidence?: Evidence[];
@@ -69,6 +71,7 @@ function node(
     scopeState: options.scopeState,
     deliveryStatus: options.deliveryStatus,
     learningState: options.learningState,
+    quiz: options.quiz,
     locked: options.locked ?? false,
     tags: options.tags ?? [],
     evidence: options.evidence ?? [],
@@ -236,12 +239,21 @@ export function createDemoWorkspace(): WorkspaceDocument {
     node(learnMapId, "learn-carbs", "concept", "Carbohydrates", "A primary energy source providing 4 calories per gram.", createdAt, { learningState: "unknown" }),
     node(learnMapId, "learn-fat", "concept", "Fat", "Supports hormones and nutrient absorption; provides 9 calories per gram.", createdAt, { learningState: "unknown" }),
     node(learnMapId, "learn-example", "exercise", "Read a nutrition label", "Calculate calories contributed by each macro for one serving.", createdAt, { learningState: "unknown" }),
+    node(learnMapId, "learn-quiz", "question", "Quick check", "Which macronutrient provides nine calories per gram?", createdAt, {
+      learningState: "unknown",
+      quiz: {
+        choices: ["Protein", "Carbohydrate", "Fat", "Water"],
+        correctChoiceIndex: 2,
+        explanation: "Fat provides 9 calories per gram; protein and carbohydrates each provide 4.",
+      },
+    }),
   ];
   const learnEdges = [
     edge(learnMapId, "edge-learn-protein", "learn-macros", "learn-protein", createdAt, "contains"),
     edge(learnMapId, "edge-learn-carbs", "learn-macros", "learn-carbs", createdAt, "contains"),
     edge(learnMapId, "edge-learn-fat", "learn-macros", "learn-fat", createdAt, "contains"),
     edge(learnMapId, "edge-learn-example", "learn-macros", "learn-example", createdAt, "contains"),
+    edge(learnMapId, "edge-learn-quiz", "learn-macros", "learn-quiz", createdAt, "contains"),
   ];
 
   const laidOutBuildNodes = layoutNodes(buildNodes, buildEdges, "LR");

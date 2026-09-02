@@ -32,8 +32,8 @@ Show the nodes appearing live, citations in the inspector, the WebMCP-ready badg
 ### 2:05–2:40 — Learn a concept
 
 - Select the macro calculation concept and press **Learn**.
-- Ask: `Create a learning map with prerequisites, examples, questions, and one exercise.`
-- Open the learning map, mark the central concept **Known**, and lock it.
+- Ask: `Create a learning map with prerequisites, examples, one exercise, and a multiple-choice quiz.`
+- Open the learning map, answer the quiz to reveal its explanation, then mark the central concept **Known** and lock it.
 
 ### 2:40–3:00 — Durable and private
 

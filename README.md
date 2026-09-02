@@ -95,13 +95,13 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the document format, mutati
 | `focus_nodes` | Select and fit nodes on the live canvas |
 | `highlight_path` | Emphasize an ordered path with focus, risk, or success styling |
 
-All schemas reject unknown properties, unsafe research URLs, missing IDs, overlong text, oversized batches, duplicates, and broken graph references. Agent tools cannot hard-delete nodes. Locked nodes reject agent changes and report their IDs as skipped.
+All schemas reject unknown properties, unsafe research URLs, missing IDs, overlong text, oversized batches, duplicates, and broken graph references. Question nodes require 2–6 choices and a valid correct-answer index. Agent tools cannot hard-delete nodes. Locked nodes reject agent changes and report their IDs as skipped.
 
 ## Demo prompts
 
 1. `Research MyFitnessPal and map the features we’d need for a clone. Cite every researched feature.`
 2. Select **Food diary**, press **Trace**, then ask: `Create an end-to-end trace map for the selected feature.`
-3. Select **Update macro totals**, press **Learn**, then ask: `Create a learning map for the selected concept with prerequisites, examples, and an exercise.`
+3. Select **Update macro totals**, press **Learn**, then ask: `Create a learning map for the selected concept with prerequisites, examples, an exercise, and a multiple-choice quiz.`
 4. `Highlight the critical food logging path and focus it on the canvas.`
 
 The optional **Load demo** button creates the same kind of source-backed workspace without waiting for live research.

@@ -127,6 +127,52 @@ describe("Nodebook WebMCP tools", () => {
     expect(fixture.runtime.getSnapshot().workspace.activeMapId).toBe(output.structuredContent.mapId);
   });
 
+  it("creates structured quizzes and rejects questions without a valid answer", () => {
+    getTool(fixture.runtime, "upsert_graph").execute({
+      mapId: "map-macros-learn",
+      nodes: [
+        {
+          id: "quiz-energy",
+          kind: "question",
+          title: "Energy check",
+          description: "Which nutrient provides nine calories per gram?",
+          quiz: {
+            choices: ["Protein", "Carbohydrate", "Fat"],
+            correctChoiceIndex: 2,
+            explanation: "Fat provides nine calories per gram.",
+          },
+        },
+      ],
+    });
+
+    expect(fixture.getWorkspace().nodes["quiz-energy"]).toMatchObject({
+      learningState: "unknown",
+      quiz: {
+        choices: ["Protein", "Carbohydrate", "Fat"],
+        correctChoiceIndex: 2,
+      },
+    });
+    expect(() =>
+      getTool(fixture.runtime, "upsert_graph").execute({
+        mapId: "map-macros-learn",
+        nodes: [{ id: "quiz-missing", kind: "question", title: "Missing choices" }],
+      }),
+    ).toThrow(/require quiz choices/i);
+    expect(() =>
+      getTool(fixture.runtime, "upsert_graph").execute({
+        mapId: "map-macros-learn",
+        nodes: [
+          {
+            id: "quiz-invalid",
+            kind: "question",
+            title: "Invalid answer",
+            quiz: { choices: ["One", "Two"], correctChoiceIndex: 2 },
+          },
+        ],
+      }),
+    ).toThrow(/correct choice index/i);
+  });
+
   it("skips locked nodes and does not overwrite their content", () => {
     fixture.getWorkspace().nodes["feature-food"].locked = true;
     const output = getTool(fixture.runtime, "upsert_graph").execute({

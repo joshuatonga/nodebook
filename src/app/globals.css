@@ -711,9 +711,13 @@ button:disabled {
 }
 
 .semantic-node.kind-concept,
-.semantic-node.kind-exercise,
-.semantic-node.kind-question {
+.semantic-node.kind-exercise {
   border-top-color: var(--chart-3);
+}
+
+.semantic-node.kind-question {
+  width: 280px;
+  border-top-color: var(--chart-1);
 }
 
 .semantic-node.selected {
@@ -786,6 +790,110 @@ button:disabled {
 .semantic-node .node-placeholder {
   color: var(--subtle-foreground);
   font-style: italic;
+}
+
+.quiz-interaction {
+  margin-top: 11px;
+}
+
+.quiz-options {
+  display: grid;
+  gap: 5px;
+}
+
+.quiz-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--muted-foreground);
+  font-size: 9px;
+  line-height: 1.35;
+  text-align: left;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.quiz-option > span {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.quiz-option:hover:not(:disabled) {
+  border-color: var(--chart-2);
+  background: color-mix(in oklch, var(--chart-2) 6%, var(--card));
+  color: var(--card-foreground);
+}
+
+.quiz-option:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.quiz-option.correct {
+  border-color: var(--status-positive);
+  background: var(--status-positive-soft);
+  color: var(--status-positive);
+}
+
+.quiz-option.incorrect {
+  border-color: var(--destructive);
+  background: var(--destructive-soft);
+  color: var(--destructive);
+}
+
+.quiz-feedback {
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid color-mix(in oklch, var(--status-positive) 28%, var(--border));
+  border-radius: 7px;
+  background: var(--status-positive-soft);
+  color: var(--muted-foreground);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.quiz-feedback.incorrect {
+  border-color: color-mix(in oklch, var(--destructive) 28%, var(--border));
+  background: var(--destructive-soft);
+}
+
+.quiz-feedback > div,
+.quiz-feedback button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.quiz-feedback.correct > div {
+  color: var(--status-positive);
+}
+
+.quiz-feedback.incorrect > div {
+  color: var(--destructive);
+}
+
+.quiz-feedback button {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--card-foreground);
+  font-size: 8px;
+  font-weight: 700;
 }
 
 .node-card-footer {

@@ -47,6 +47,12 @@ export interface Evidence {
   createdAt: string;
 }
 
+export interface QuizContent {
+  choices: string[];
+  correctChoiceIndex: number;
+  explanation?: string;
+}
+
 export interface CanvasNode {
   id: string;
   mapId: string;
@@ -57,6 +63,7 @@ export interface CanvasNode {
   scopeState?: ScopeState;
   deliveryStatus?: DeliveryStatus;
   learningState?: LearningState;
+  quiz?: QuizContent;
   locked: boolean;
   tags: string[];
   evidence: Evidence[];

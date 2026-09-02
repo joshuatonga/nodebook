@@ -19,6 +19,16 @@ const evidenceSchema = z.object({
   addedBy: z.enum(["human", "agent", "system"]),
   createdAt: isoDate,
 });
+const quizSchema = z
+  .object({
+    choices: z.array(z.string().min(1).max(240)).min(2).max(6),
+    correctChoiceIndex: z.number().int().min(0),
+    explanation: z.string().max(600).optional(),
+  })
+  .refine((quiz) => quiz.correctChoiceIndex < quiz.choices.length, {
+    message: "The correct choice index must reference an available choice.",
+    path: ["correctChoiceIndex"],
+  });
 const nodeSchema = z.object({
   id,
   mapId: id,
@@ -29,6 +39,7 @@ const nodeSchema = z.object({
   scopeState: z.enum(["proposed", "included", "excluded"]).optional(),
   deliveryStatus: z.enum(["not_started", "partial", "complete"]).optional(),
   learningState: z.enum(["unknown", "learning", "known"]).optional(),
+  quiz: quizSchema.optional(),
   locked: z.boolean(),
   tags: z.array(z.string().min(1).max(48)).max(20),
   evidence: z.array(evidenceSchema).max(100),
@@ -110,6 +121,7 @@ export function parseWorkspaceDocument(input: unknown): WorkspaceDocument {
   for (const [key, node] of Object.entries(document.nodes)) {
     if (key !== node.id) throw new Error(`Node dictionary key mismatch: ${key}`);
     if (!document.maps[node.mapId]) throw new Error(`Node ${node.id} references a missing map.`);
+    if (node.quiz && node.kind !== "question") throw new Error(`Node ${node.id} has quiz content but is not a question.`);
     for (const evidence of node.evidence) {
       if (evidence.kind === "source_url") {
         const url = new URL(evidence.ref);

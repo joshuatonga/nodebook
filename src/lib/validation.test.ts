@@ -28,4 +28,17 @@ describe("workspace imports and migrations", () => {
     broken.edges["edge-project-log"].target = "missing";
     expect(() => parseWorkspaceDocument(broken)).toThrow(/missing node/);
   });
+
+  it("rejects invalid quiz answers and quiz content on non-question nodes", () => {
+    const invalidAnswer = createDemoWorkspace();
+    invalidAnswer.nodes["learn-quiz"].quiz!.correctChoiceIndex = 12;
+    expect(() => parseWorkspaceDocument(invalidAnswer)).toThrow(/correct choice index/i);
+
+    const misplacedQuiz = createDemoWorkspace();
+    misplacedQuiz.nodes["feature-food"].quiz = {
+      choices: ["One", "Two"],
+      correctChoiceIndex: 0,
+    };
+    expect(() => parseWorkspaceDocument(misplacedQuiz)).toThrow(/not a question/i);
+  });
 });

@@ -7,7 +7,11 @@ const DEFAULT_HEIGHT = 116;
 function sizeForNode(node: CanvasNode): { width: number; height: number } {
   if (node.kind === "project") return { width: 260, height: 104 };
   if (node.kind === "group") return { width: 232, height: 92 };
-  if (node.kind === "question" || node.kind === "note") return { width: 240, height: 98 };
+  if (node.kind === "question") {
+    const choiceCount = node.quiz?.choices.length ?? 0;
+    return { width: 280, height: node.quiz ? 190 + choiceCount * 34 : 116 };
+  }
+  if (node.kind === "note") return { width: 240, height: 98 };
   return { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
 }
 

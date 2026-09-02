@@ -83,6 +83,27 @@ test("nodes expand to show their entire description", async ({ page }) => {
   );
 });
 
+test("quiz nodes reveal the correct answer after a learner chooses", async ({ page }) => {
+  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByLabel("Workspace navigation").getByRole("button", { name: "Understanding macronutrients" }).click();
+  const quiz = page.getByLabel("Quiz: Quick check");
+  await expect(quiz.getByRole("button", { name: "Protein" })).toBeVisible();
+  await expect(quiz.getByRole("button", { name: "Carbohydrate" })).toBeVisible();
+  await expect(quiz.getByRole("button", { name: "Fat", exact: true })).toBeVisible();
+  await expect(quiz.getByRole("button", { name: "Water" })).toBeVisible();
+
+  await quiz.getByRole("button", { name: "Protein" }).click();
+  const incorrectFeedback = quiz.getByRole("status");
+  await expect(incorrectFeedback).toContainText("Not quite");
+  await expect(incorrectFeedback).toContainText("Correct answer: Fat");
+  await expect(incorrectFeedback).toContainText("Fat provides 9 calories per gram");
+
+  await quiz.getByRole("button", { name: "Try again" }).click();
+  await expect(incorrectFeedback).not.toBeVisible();
+  await quiz.getByRole("button", { name: "Fat", exact: true }).click();
+  await expect(quiz.getByRole("status")).toContainText("Correct");
+});
+
 test("agent highlights dim the rest of the canvas until cleared", async ({ page }) => {
   await page.addInitScript(() => {
     const tools: Record<string, { execute: (input: unknown) => unknown }> = {};

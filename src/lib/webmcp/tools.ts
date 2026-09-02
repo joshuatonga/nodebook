@@ -34,19 +34,39 @@ const evidenceInputSchema = z
     note: z.string().max(1000).optional(),
   })
   .strict();
+const quizInputSchema = z
+  .object({
+    choices: z.array(z.string().min(1).max(240)).min(2).max(6),
+    correctChoiceIndex: z.number().int().min(0),
+    explanation: z.string().max(600).optional(),
+  })
+  .strict()
+  .refine((quiz) => quiz.correctChoiceIndex < quiz.choices.length, {
+    message: "The correct choice index must reference an available choice.",
+    path: ["correctChoiceIndex"],
+  });
 const nodeInputSchema = z
   .object({
     id: idSchema,
     kind: nodeKindSchema,
     title: z.string().min(1).max(120),
     description: z.string().max(1200).optional(),
+    quiz: quizInputSchema.optional(),
     x: z.number().finite().optional(),
     y: z.number().finite().optional(),
     tags: z.array(z.string().min(1).max(48)).max(20).optional(),
     locked: z.boolean().optional(),
     evidence: z.array(evidenceInputSchema).max(MAX_EVIDENCE).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((node, context) => {
+    if (node.kind === "question" && !node.quiz) {
+      context.addIssue({ code: "custom", message: "Question nodes require quiz choices and a correct answer.", path: ["quiz"] });
+    }
+    if (node.kind !== "question" && node.quiz) {
+      context.addIssue({ code: "custom", message: "Quiz content is only valid for question nodes.", path: ["quiz"] });
+    }
+  });
 const edgeInputSchema = z
   .object({
     id: idSchema.optional(),
@@ -69,6 +89,23 @@ const jsonEvidenceSchema = {
   required: ["kind", "label", "ref"],
 } as const;
 
+const jsonQuizSchema = {
+  type: "object",
+  description: "Required for question nodes. The correct answer is a zero-based index into choices.",
+  additionalProperties: false,
+  properties: {
+    choices: {
+      type: "array",
+      minItems: 2,
+      maxItems: 6,
+      items: { type: "string", minLength: 1, maxLength: 240 },
+    },
+    correctChoiceIndex: { type: "integer", minimum: 0 },
+    explanation: { type: "string", maxLength: 600 },
+  },
+  required: ["choices", "correctChoiceIndex"],
+} as const;
+
 const jsonNodeSchema = {
   type: "object",
   additionalProperties: false,
@@ -77,6 +114,7 @@ const jsonNodeSchema = {
     kind: { type: "string", enum: ["project", "group", "feature", "step", "code", "concept", "question", "note", "exercise"] },
     title: { type: "string", minLength: 1, maxLength: 120 },
     description: { type: "string", maxLength: 1200 },
+    quiz: jsonQuizSchema,
     x: { type: "number" },
     y: { type: "number" },
     tags: { type: "array", maxItems: 20, items: { type: "string", minLength: 1, maxLength: 48 } },
@@ -158,7 +196,8 @@ function nodeFromInput(mapId: string, input: z.infer<typeof nodeInputSchema>): C
     position: { x: input.x ?? 0, y: input.y ?? 0 },
     scopeState: input.kind === "feature" ? "proposed" : undefined,
     deliveryStatus: input.kind === "feature" ? "not_started" : undefined,
-    learningState: input.kind === "concept" || input.kind === "exercise" ? "unknown" : undefined,
+    learningState: ["concept", "exercise", "question"].includes(input.kind) ? "unknown" : undefined,
+    quiz: input.quiz,
     locked: input.locked ?? false,
     tags: input.tags ?? [],
     evidence: (input.evidence ?? []).map(evidenceFromInput),
@@ -188,6 +227,7 @@ function compactNode(node: CanvasNode, includeEvidence = false): Record<string, 
     scopeState: node.scopeState,
     deliveryStatus: node.deliveryStatus,
     learningState: node.learningState,
+    quiz: node.quiz,
     locked: node.locked,
     tags: node.tags,
     ...(includeEvidence ? { evidence: node.evidence } : { evidenceCount: node.evidence.length }),
@@ -410,7 +450,14 @@ export function createNodebookTools(runtime: NodebookToolRuntime): NodebookTool[
           .filter((node) => !input.mapId || node.mapId === input.mapId)
           .filter((node) => !input.kinds || input.kinds.includes(node.kind))
           .filter((node) =>
-            [node.title, node.description, ...node.tags, ...node.evidence.flatMap((item) => [item.label, item.ref, item.note ?? ""])]
+            [
+              node.title,
+              node.description,
+              ...(node.quiz?.choices ?? []),
+              node.quiz?.explanation ?? "",
+              ...node.tags,
+              ...node.evidence.flatMap((item) => [item.label, item.ref, item.note ?? ""]),
+            ]
               .join(" ")
               .toLocaleLowerCase()
               .includes(query),
@@ -510,6 +557,7 @@ export function createNodebookTools(runtime: NodebookToolRuntime): NodebookTool[
               kind: item.kind,
               title: item.title,
               description: item.description ?? existing.description,
+              quiz: item.kind === "question" ? item.quiz : undefined,
               position: { x: item.x ?? existing.position.x, y: item.y ?? existing.position.y },
               tags: item.tags ?? existing.tags,
               locked: item.locked ?? existing.locked,
