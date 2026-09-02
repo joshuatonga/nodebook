@@ -84,6 +84,37 @@ test("nodes expand to show their entire description", async ({ page }) => {
   );
 });
 
+test("selected nodes support direct title and description editing", async ({ page }) => {
+  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  const node = page.locator(".semantic-node").filter({
+    has: page.getByRole("heading", { name: "Food diary", exact: true }),
+  });
+
+  await node.getByRole("heading", { name: "Food diary", exact: true }).click();
+  await expect(node.getByRole("button", { name: "Edit title" })).toBeVisible();
+  await expect(node.getByRole("textbox", { name: "Edit node title" })).toHaveCount(0);
+
+  await node.getByRole("button", { name: "Edit title" }).click();
+  const titleEditor = node.getByRole("textbox", { name: "Edit node title" });
+  await titleEditor.fill("Food journal");
+  await titleEditor.press("Enter");
+  const updatedNode = page.locator(".semantic-node").filter({
+    has: page.getByRole("heading", { name: "Food journal", exact: true }),
+  });
+  await expect(updatedNode.getByRole("heading", { name: "Food journal", exact: true })).toBeVisible();
+
+  await updatedNode.getByRole("button", { name: "Edit description" }).click();
+  const descriptionEditor = updatedNode.getByRole("textbox", { name: "Edit node description" });
+  await descriptionEditor.fill("Log meals and snacks from the canvas.");
+  await descriptionEditor.press("Control+Enter");
+  await expect(updatedNode.getByText("Log meals and snacks from the canvas.", { exact: true })).toBeVisible();
+
+  await page.waitForTimeout(350);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Food journal", exact: true })).toBeVisible();
+  await expect(page.getByText("Log meals and snacks from the canvas.", { exact: true })).toBeVisible();
+});
+
 test("quiz nodes reveal the correct answer after a learner chooses", async ({ page }) => {
   await page.getByRole("button", { name: "Load source-backed demo" }).click();
   await page.getByLabel("Workspace navigation").getByRole("button", { name: "Understanding macronutrients" }).click();

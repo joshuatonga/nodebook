@@ -2,8 +2,9 @@
 
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { CheckCircle2, ExternalLink, GitBranch, LockKeyhole, RotateCcw, XCircle } from "lucide-react";
-import { memo, useState } from "react";
+import { memo, useLayoutEffect, useRef, useState } from "react";
 import type { CanvasNode, QuizContent } from "@/lib/model";
+import { useWorkspaceStore } from "@/lib/store";
 
 export interface SemanticNodeData extends Record<string, unknown> {
   node: CanvasNode;
@@ -24,11 +25,41 @@ function labelForNode(node: CanvasNode): string | null {
 function SemanticNodeView({ data, selected }: NodeProps<SemanticFlowNode>) {
   const { node, linkedMapCount, highlighted } = data;
   const stateLabel = labelForNode(node);
+  const isSelected = selected || data.appSelected;
+  const updateNode = useWorkspaceStore((state) => state.updateNode);
+  const [editingField, setEditingField] = useState<"title" | "description" | null>(null);
+  const [draftTitle, setDraftTitle] = useState(node.title);
+  const [draftDescription, setDraftDescription] = useState(node.description);
+  const descriptionEditorRef = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    if (editingField !== "description" || !descriptionEditorRef.current) return;
+    descriptionEditorRef.current.style.height = "0";
+    descriptionEditorRef.current.style.height = `${descriptionEditorRef.current.scrollHeight}px`;
+  }, [editingField]);
+
+  function beginEditing(field: "title" | "description") {
+    setDraftTitle(node.title);
+    setDraftDescription(node.description);
+    setEditingField(field);
+  }
+
+  function commitTitle() {
+    const title = draftTitle.trim() || node.title;
+    setDraftTitle(title);
+    setEditingField(null);
+    if (title !== node.title) updateNode(node.id, { title });
+  }
+
+  function commitDescription() {
+    setEditingField(null);
+    if (draftDescription !== node.description) updateNode(node.id, { description: draftDescription });
+  }
 
   return (
     <article
       aria-label={node.kind === "question" ? `Quiz: ${node.title}` : undefined}
-      className={`semantic-node kind-${node.kind} ${selected || data.appSelected ? "selected" : ""} ${node.locked ? "locked" : ""} ${highlighted ? `highlight-${highlighted}` : ""}`}
+      className={`semantic-node kind-${node.kind} ${isSelected ? "selected" : ""} ${node.locked ? "locked" : ""} ${highlighted ? `highlight-${highlighted}` : ""}`}
     >
       <Handle className="node-handle" position={Position.Left} type="target" />
       <div className="node-card-header">
@@ -39,8 +70,77 @@ function SemanticNodeView({ data, selected }: NodeProps<SemanticFlowNode>) {
           {node.locked ? <LockKeyhole aria-label="Locked" size={12} /> : null}
         </span>
       </div>
-      <h3>{node.title}</h3>
-      {node.description ? <p>{node.description}</p> : <p className="node-placeholder">Add a description</p>}
+      <h3 aria-label={node.title}>
+        {isSelected && editingField === "title" ? (
+          <input
+            aria-label="Edit node title"
+            autoFocus
+            className="node-inline-editor node-title-editor nodrag nopan"
+            maxLength={120}
+            onBlur={commitTitle}
+            onChange={(event) => setDraftTitle(event.target.value)}
+            onKeyDown={(event) => {
+              event.stopPropagation();
+              if (event.key === "Enter") event.currentTarget.blur();
+              if (event.key === "Escape") {
+                setDraftTitle(node.title);
+                setEditingField(null);
+              }
+            }}
+            value={draftTitle}
+          />
+        ) : isSelected ? (
+          <button
+            aria-label="Edit title"
+            className="node-inline-trigger nodrag nopan"
+            onClick={() => beginEditing("title")}
+            type="button"
+          >
+            {node.title}
+          </button>
+        ) : (
+          node.title
+        )}
+      </h3>
+      {isSelected && editingField === "description" ? (
+        <textarea
+          aria-label="Edit node description"
+          autoFocus
+          className="node-description node-inline-editor node-description-editor nodrag nopan"
+          maxLength={1200}
+          onBlur={commitDescription}
+          onChange={(event) => setDraftDescription(event.target.value)}
+          onInput={(event) => {
+            event.currentTarget.style.height = "0";
+            event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`;
+          }}
+          onKeyDown={(event) => {
+            event.stopPropagation();
+            if (event.key === "Escape") {
+              setDraftDescription(node.description);
+              setEditingField(null);
+            }
+            if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) event.currentTarget.blur();
+          }}
+          placeholder="Add a description"
+          ref={descriptionEditorRef}
+          rows={1}
+          value={draftDescription}
+        />
+      ) : isSelected ? (
+        <button
+          aria-label="Edit description"
+          className={`node-description node-inline-trigger nodrag nopan ${node.description ? "" : "node-placeholder"}`}
+          onClick={() => beginEditing("description")}
+          type="button"
+        >
+          {node.description || "Add a description"}
+        </button>
+      ) : node.description ? (
+        <p>{node.description}</p>
+      ) : (
+        <p className="node-placeholder">Add a description</p>
+      )}
       {node.kind === "question" && node.quiz ? <QuizChoices quiz={node.quiz} /> : null}
       <div className="node-card-footer">
         {stateLabel ? <span className={`state-chip ${node.scopeState ?? node.learningState ?? node.deliveryStatus}`}>{stateLabel}</span> : <span />}

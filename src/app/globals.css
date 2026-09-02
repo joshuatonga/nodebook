@@ -778,7 +778,8 @@ button:disabled {
   line-height: 1.25;
 }
 
-.semantic-node p {
+.semantic-node p,
+.node-description {
   min-height: 26px;
   margin: 0;
   overflow-wrap: anywhere;
@@ -790,6 +791,56 @@ button:disabled {
 .semantic-node .node-placeholder {
   color: var(--subtle-foreground);
   font-style: italic;
+}
+
+.node-inline-trigger {
+  display: block;
+  width: 100%;
+  padding: 2px 3px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: text;
+  font: inherit;
+  line-height: inherit;
+  text-align: left;
+}
+
+.semantic-node h3 .node-inline-trigger {
+  margin: -2px -3px;
+}
+
+.semantic-node.selected .node-inline-trigger:hover,
+.semantic-node.selected .node-inline-trigger:focus-visible {
+  background: color-mix(in oklch, var(--ring) 8%, transparent);
+  outline: 1px solid color-mix(in oklch, var(--ring) 24%, transparent);
+  outline-offset: 0;
+}
+
+.node-inline-editor {
+  width: 100%;
+  border: 1px solid var(--ring);
+  border-radius: 4px;
+  background: var(--card);
+  color: inherit;
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring) 14%, transparent);
+  font: inherit;
+  line-height: inherit;
+  outline: none;
+}
+
+.node-title-editor {
+  margin: -3px -4px;
+  padding: 2px 3px;
+}
+
+.node-description-editor {
+  display: block;
+  min-height: 30px;
+  padding: 3px;
+  overflow: hidden;
+  resize: none;
 }
 
 .quiz-interaction {
