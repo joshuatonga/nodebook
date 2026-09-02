@@ -8,13 +8,13 @@
 
 ## Recording
 
-### 0:00–0:45 — Research into a durable map
+### 0:00–0:45 — Open a durable product map
 
-Ask:
+Choose **Load complete demo** and open **Product roadmap**. Show:
 
-> Research MyFitnessPal and map the features we’d need for a clone. Cite every researched feature in Nodebook.
-
-Show the nodes appearing live, citations in the inspector, the WebMCP-ready badge, and the agent activity entry.
+- Four workstreams with included, proposed, and excluded scope.
+- Delivery progress, locked decisions, evidence, and human–agent comments.
+- The WebMCP-ready badge and recent activity.
 
 ### 0:45–1:25 — Human scope control
 
@@ -25,15 +25,15 @@ Show the nodes appearing live, citations in the inspector, the WebMCP-ready badg
 
 ### 1:25–2:05 — Trace the experience
 
-- Select **Food diary** and press **Trace**.
-- Ask: `Create an end-to-end journey for the selected feature, then highlight the critical path.`
-- Open the new linked map and show the breadcrumb.
+- Select **Fast idea capture** and press **Trace**.
+- Ask: `Expand this journey with failure states, then highlight the critical path.`
+- Open **Fast capture journey** and show the breadcrumb.
 
 ### 2:05–2:40 — Learn a concept
 
-- Select the macro calculation concept and press **Learn**.
-- Ask: `Create a learning map with prerequisites, examples, one exercise, and a multiple-choice quiz.`
-- Open the learning map, answer the quiz to reveal its explanation, then mark the central concept **Known** and lock it.
+- Open **Local-first foundations** from the sidebar.
+- Follow the concepts from the workspace document through atomic mutations and persistence.
+- Answer **Architecture check**, then mark one concept **Known** and lock it.
 
 ### 2:40–3:00 — Durable and private
 
@@ -43,6 +43,6 @@ Show the nodes appearing live, citations in the inspector, the WebMCP-ready badg
 - Refresh to demonstrate IndexedDB persistence.
 - Briefly point to export and the privacy statement in the README.
 
-## Fallback
+## Optional live-agent extension
 
-If live research is slow, begin blank, explain the prompt, then choose **Load demo**. The demo uses official MyFitnessPal support citations and includes the build, food-logging trace, and macronutrient learning maps.
+Ask the agent to review **Release readiness**, add a comment to the most important unfinished gate, and focus that node. This demonstrates a useful mutation without replacing the prepared story.

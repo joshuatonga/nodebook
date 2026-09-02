@@ -11,8 +11,8 @@ describe("workspace imports and migrations", () => {
 
   it("accepts a blank canvas type", () => {
     const workspace = createDemoWorkspace();
-    workspace.maps["map-myfitnesspal-build"].kind = "blank";
-    expect(parseWorkspaceDocument(workspace).maps["map-myfitnesspal-build"].kind).toBe("blank");
+    workspace.maps["map-nodebook-launch"].kind = "blank";
+    expect(parseWorkspaceDocument(workspace).maps["map-nodebook-launch"].kind).toBe("blank");
   });
 
   it("migrates a version zero document and restores missing activity", () => {
@@ -22,7 +22,7 @@ describe("workspace imports and migrations", () => {
     const migrated = parseWorkspaceDocument(legacy);
 
     expect(migrated.schemaVersion).toBe(2);
-    expect(migrated.nodes["feature-food"].comments).toEqual([]);
+    expect(migrated.nodes["feature-fast-capture"].comments).toEqual([]);
     expect(migrated.activity[0].action).toBe("workspace_migrated");
   });
 
@@ -33,16 +33,16 @@ describe("workspace imports and migrations", () => {
     const migrated = parseWorkspaceDocument({ ...workspace, schemaVersion: 1, nodes });
 
     expect(migrated.schemaVersion).toBe(2);
-    expect(migrated.nodes["feature-food"].comments).toEqual([]);
+    expect(migrated.nodes["feature-fast-capture"].comments).toEqual([]);
   });
 
   it("rejects unsafe source URLs and broken graph references", () => {
     const unsafe = createDemoWorkspace();
-    unsafe.nodes["feature-food"].evidence[0].ref = "http://example.com/source";
+    unsafe.nodes["feature-local-persistence"].evidence[0].ref = "http://example.com/source";
     expect(() => parseWorkspaceDocument(unsafe)).toThrow(/HTTPS/);
 
     const broken = createDemoWorkspace();
-    broken.edges["edge-project-log"].target = "missing";
+    broken.edges["edge-project-foundation"].target = "missing";
     expect(() => parseWorkspaceDocument(broken)).toThrow(/missing node/);
   });
 
@@ -52,7 +52,7 @@ describe("workspace imports and migrations", () => {
     expect(() => parseWorkspaceDocument(invalidAnswer)).toThrow(/correct choice index/i);
 
     const misplacedQuiz = createDemoWorkspace();
-    misplacedQuiz.nodes["feature-food"].quiz = {
+    misplacedQuiz.nodes["feature-fast-capture"].quiz = {
       choices: ["One", "Two"],
       correctChoiceIndex: 0,
     };

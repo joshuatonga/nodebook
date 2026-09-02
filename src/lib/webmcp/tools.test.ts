@@ -18,7 +18,7 @@ function createRuntime() {
     workspace = next;
   });
   const runtime: NodebookToolRuntime = {
-    getSnapshot: () => ({ workspace: { ...workspace, activeMapId }, selectedNodeIds: ["feature-food"], pendingIntent }),
+    getSnapshot: () => ({ workspace: { ...workspace, activeMapId }, selectedNodeIds: ["feature-fast-capture"], pendingIntent }),
     commitWorkspace,
     activateMap: (mapId) => {
       activeMapId = mapId;
@@ -98,8 +98,8 @@ describe("Nodebook WebMCP tools", () => {
       content: Array<{ text: string }>;
       structuredContent: { name: string; selectedNodeIds: string[] };
     };
-    expect(output.structuredContent.name).toBe("MyFitnessPal clone research");
-    expect(output.structuredContent.selectedNodeIds).toEqual(["feature-food"]);
+    expect(output.structuredContent.name).toBe("Nodebook v1 launch plan");
+    expect(output.structuredContent.selectedNodeIds).toEqual(["feature-fast-capture"]);
     expect(JSON.parse(output.content[0].text)).toEqual(output.structuredContent);
   });
 
@@ -107,14 +107,14 @@ describe("Nodebook WebMCP tools", () => {
     const intent: PendingIntent = {
       id: "intent-1",
       type: "trace",
-      nodeId: "feature-food",
+      nodeId: "feature-fast-capture",
       createdAt: new Date().toISOString(),
     };
     fixture.setIntent(intent);
     const output = getTool(fixture.runtime, "create_map").execute({
       title: "Food logging v2",
       kind: "trace",
-      parentNodeId: "feature-food",
+      parentNodeId: "feature-fast-capture",
       nodes: [
         { id: "step-one", kind: "step", title: "Choose a meal" },
         { id: "step-two", kind: "step", title: "Save entry" },
@@ -124,14 +124,14 @@ describe("Nodebook WebMCP tools", () => {
     }) as { structuredContent: { mapId: string } };
 
     expect(fixture.commitWorkspace).toHaveBeenCalledOnce();
-    expect(fixture.getWorkspace().maps[output.structuredContent.mapId]).toMatchObject({ parentNodeId: "feature-food", kind: "trace" });
+    expect(fixture.getWorkspace().maps[output.structuredContent.mapId]).toMatchObject({ parentNodeId: "feature-fast-capture", kind: "trace" });
     expect(fixture.runtime.getSnapshot().pendingIntent).toBeNull();
     expect(fixture.runtime.getSnapshot().workspace.activeMapId).toBe(output.structuredContent.mapId);
   });
 
   it("creates structured quizzes and rejects questions without a valid answer", () => {
     getTool(fixture.runtime, "upsert_graph").execute({
-      mapId: "map-macros-learn",
+      mapId: "map-local-first-learn",
       nodes: [
         {
           id: "quiz-energy",
@@ -156,13 +156,13 @@ describe("Nodebook WebMCP tools", () => {
     });
     expect(() =>
       getTool(fixture.runtime, "upsert_graph").execute({
-        mapId: "map-macros-learn",
+        mapId: "map-local-first-learn",
         nodes: [{ id: "quiz-missing", kind: "question", title: "Missing choices" }],
       }),
     ).toThrow(/require quiz choices/i);
     expect(() =>
       getTool(fixture.runtime, "upsert_graph").execute({
-        mapId: "map-macros-learn",
+        mapId: "map-local-first-learn",
         nodes: [
           {
             id: "quiz-invalid",
@@ -176,20 +176,20 @@ describe("Nodebook WebMCP tools", () => {
   });
 
   it("skips locked nodes and does not overwrite their content", () => {
-    fixture.getWorkspace().nodes["feature-food"].locked = true;
+    fixture.getWorkspace().nodes["feature-fast-capture"].locked = true;
     const output = getTool(fixture.runtime, "upsert_graph").execute({
-      mapId: "map-myfitnesspal-build",
-      nodes: [{ id: "feature-food", kind: "feature", title: "Overwritten" }],
+      mapId: "map-nodebook-launch",
+      nodes: [{ id: "feature-fast-capture", kind: "feature", title: "Overwritten" }],
     }) as { structuredContent: { skippedLocked: string[] } };
 
-    expect(output.structuredContent.skippedLocked).toEqual(["feature-food"]);
-    expect(fixture.getWorkspace().nodes["feature-food"].title).toBe("Food diary");
+    expect(output.structuredContent.skippedLocked).toEqual(["feature-fast-capture"]);
+    expect(fixture.getWorkspace().nodes["feature-fast-capture"].title).toBe("Fast idea capture");
   });
 
   it("requires exclusion rationale and validates malformed, duplicate, oversized, and unsafe inputs", () => {
     expect(() =>
       getTool(fixture.runtime, "set_scope_decisions").execute({
-        updates: [{ nodeId: "feature-food", state: "excluded" }],
+        updates: [{ nodeId: "feature-fast-capture", state: "excluded" }],
       }),
     ).toThrow(/requires a rationale/);
 
@@ -211,7 +211,7 @@ describe("Nodebook WebMCP tools", () => {
     ).toThrow();
     expect(() =>
       getTool(fixture.runtime, "add_evidence").execute({
-        nodeId: "feature-food",
+        nodeId: "feature-fast-capture",
         evidence: [{ kind: "source_url", label: "Unsafe", ref: "http://example.com" }],
       }),
     ).toThrow(/HTTPS/);
@@ -220,18 +220,18 @@ describe("Nodebook WebMCP tools", () => {
   it("focuses nodes and highlights ordered paths without changing workspace data", () => {
     const original = structuredClone(fixture.getWorkspace());
     getTool(fixture.runtime, "highlight_path").execute({
-      nodeIds: ["trace-open", "trace-add", "trace-find"],
+      nodeIds: ["capture-thought", "capture-open", "capture-place"],
       tone: "success",
     });
 
-    expect(fixture.getFocused()).toEqual(["trace-open", "trace-add", "trace-find"]);
-    expect(fixture.getHighlight()).toEqual({ nodeIds: ["trace-open", "trace-add", "trace-find"], tone: "success" });
+    expect(fixture.getFocused()).toEqual(["capture-thought", "capture-open", "capture-place"]);
+    expect(fixture.getHighlight()).toEqual({ nodeIds: ["capture-thought", "capture-open", "capture-place"], tone: "success" });
     expect(fixture.getWorkspace()).toEqual(original);
   });
 
   it("adds an agent-attributed comment and lists it with node context", () => {
     const added = getTool(fixture.runtime, "add_comment").execute({
-      nodeId: "feature-food",
+      nodeId: "feature-evidence",
       body: "We should validate the offline flow.",
       agentName: "Codex",
     }) as { structuredContent: { comment: { authorKind: string; authorName: string; body: string } } };
@@ -241,12 +241,12 @@ describe("Nodebook WebMCP tools", () => {
       authorName: "Codex",
       body: "We should validate the offline flow.",
     });
-    const listed = getTool(fixture.runtime, "list_comments").execute({ nodeId: "feature-food" }) as {
+    const listed = getTool(fixture.runtime, "list_comments").execute({ nodeId: "feature-evidence" }) as {
       structuredContent: { count: number; comments: Array<{ nodeId: string; authorName: string }> };
     };
     expect(listed.structuredContent).toMatchObject({
       count: 1,
-      comments: [{ nodeId: "feature-food", authorName: "Codex" }],
+      comments: [{ nodeId: "feature-evidence", authorName: "Codex" }],
     });
   });
 });

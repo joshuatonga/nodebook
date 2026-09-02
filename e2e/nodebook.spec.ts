@@ -14,8 +14,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("first launch is a blank agent-ready workspace with an unsupported fallback", async ({ page }) => {
-  await expect(page.getByRole("heading", { name: "Map a product with your agent." })).toBeVisible();
-  await expect(page.getByText("Research MyFitnessPal and map the features we’d need for a clone.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Plan what to build." })).toBeVisible();
+  await expect(page.getByText("Map the v1 scope, delivery status, risks, and evidence for my product.")).toBeVisible();
   await expect(page.getByText("WebMCP unavailable")).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Workspace navigation" })).toBeVisible();
 
@@ -36,7 +36,7 @@ test("creates and opens a canvas from the sidebar", async ({ page }) => {
   await expect(newCanvas).toHaveAttribute("data-map-kind", "blank");
   await expect(sidebar.locator(".map-link").first()).toContainText("Untitled canvas");
   await expect(newCanvas).toHaveClass(/active/);
-  await expect(page.getByRole("heading", { name: "Map a product with your agent." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Start with any idea." })).toBeVisible();
 
   await page.getByLabel("Map breadcrumbs").getByRole("button", { name: "Untitled canvas" }).click();
   const titleEditor = page.getByRole("textbox", { name: "Edit canvas title" });
@@ -51,7 +51,7 @@ test("creates and opens a canvas from the sidebar", async ({ page }) => {
 });
 
 test("creates connected nodes beside a selection or at a clicked canvas position", async ({ page }) => {
-  await page.getByRole("button", { name: "Add your first node" }).click();
+  await page.getByRole("button", { name: "Add your first feature" }).click();
   const canvas = page.getByRole("application");
   const firstNode = canvas.getByRole("heading", { name: "New feature", exact: true });
   await expect(firstNode).toBeVisible();
@@ -74,9 +74,9 @@ test("creates connected nodes beside a selection or at a clicked canvas position
 });
 
 test("deletes a canvas from its hover action and supports undo", async ({ page }) => {
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
   const sidebar = page.getByRole("complementary", { name: "Workspace navigation" });
-  const canvas = sidebar.getByRole("button", { name: "Food logging journey" });
+  const canvas = sidebar.getByRole("button", { name: "Fast capture journey" });
 
   await canvas.hover();
   const deleteButton = canvas.locator("..").getByRole("button", { name: "Delete canvas" });
@@ -86,13 +86,13 @@ test("deletes a canvas from its hover action and supports undo", async ({ page }
   await expect(canvas).not.toBeVisible();
 
   await page.getByRole("button", { name: "Undo" }).click();
-  await expect(sidebar.getByRole("button", { name: "Food logging journey" })).toBeVisible();
+  await expect(sidebar.getByRole("button", { name: "Fast capture journey" })).toBeVisible();
 });
 
 test("clearly selects a connection and deletes it by mouse or keyboard with undo", async ({ page }) => {
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
   await page.getByRole("button", { name: "Fit", exact: true }).click();
-  const connection = page.locator('[data-testid="rf__edge-edge-log-food"]');
+  const connection = page.locator('[data-testid="rf__edge-edge-foundation-feature-fast-capture"]');
 
   await expect(connection).toBeVisible();
   await connection.click();
@@ -113,23 +113,26 @@ test("clearly selects a connection and deletes it by mouse or keyboard with undo
 });
 
 test("demo supports scope review, trace intent, linked maps, undo, and reload persistence", async ({ page }) => {
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
-  await expect(page.getByText("MyFitnessPal-style tracker")).toBeVisible();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await expect(page.getByText("Ship Nodebook v1")).toBeVisible();
   await expect(page.getByRole("button", { name: "Accept all proposed" })).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Inspector" })).not.toBeVisible();
 
-  await page.getByText("Meal planner", { exact: true }).click();
+  await page.getByText("In-product feedback", { exact: true }).click();
   await page.getByRole("button", { name: "Open inspector" }).click();
   await expect(page.getByRole("complementary", { name: "Inspector" })).toBeVisible();
-  page.once("dialog", (dialog) => dialog.accept("A weekly planner is outside the first release."));
+  page.once("dialog", (dialog) => dialog.accept("Feedback capture can follow the first release."));
   await page.getByLabel("Scope").selectOption("excluded");
-  await expect(page.getByText("excluded", { exact: true })).toBeVisible();
+  const feedbackNode = page.locator(".semantic-node").filter({
+    has: page.getByRole("heading", { name: "In-product feedback", exact: true }),
+  });
+  await expect(feedbackNode.getByText("excluded", { exact: true })).toBeVisible();
 
-  await page.getByText("Food diary", { exact: true }).click();
+  await page.getByText("Fast idea capture", { exact: true }).click();
   await page.getByRole("button", { name: "Trace", exact: true }).click();
   await expect(page.getByText("Trace intent is ready.")).toBeVisible();
-  await page.getByLabel("Workspace navigation").getByRole("button", { name: "Food logging journey" }).click();
-  await expect(page.getByText("Open Today", { exact: true })).toBeVisible();
+  await page.getByLabel("Workspace navigation").getByRole("button", { name: "Fast capture journey" }).click();
+  await expect(page.getByText("A thought arrives", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Add node" }).click();
   const newStep = page.getByRole("application").getByRole("heading", { name: "New step", exact: true });
@@ -142,23 +145,23 @@ test("demo supports scope review, trace intent, linked maps, undo, and reload pe
   await page.waitForTimeout(350);
   await page.reload();
   await expect(
-    page.getByLabel("Workspace navigation").getByRole("button", { name: "Food logging journey", exact: true }),
+    page.getByLabel("Workspace navigation").getByRole("button", { name: "Fast capture journey", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("application").getByRole("heading", { name: "New step", exact: true })).toBeVisible();
 });
 
 test("exports a valid workspace JSON file", async ({ page }) => {
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export workspace" }).click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe("myfitnesspal-clone-research.json");
+  expect(download.suggestedFilename()).toBe("nodebook-v1-launch-plan.json");
 });
 
 test("nodes expand to show their entire description", async ({ page }) => {
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
   const node = page.locator(".semantic-node").filter({
-    has: page.getByRole("heading", { name: "Calories & macros", exact: true }),
+    has: page.getByRole("heading", { name: "Infinite semantic canvas", exact: true }),
   });
   const description = node.locator("p");
   await description.evaluate((element) => {
@@ -172,106 +175,107 @@ test("nodes expand to show their entire description", async ({ page }) => {
 });
 
 test("selected nodes support direct title and description editing", async ({ page }) => {
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
   const node = page.locator(".semantic-node").filter({
-    has: page.getByRole("heading", { name: "Food diary", exact: true }),
+    has: page.getByRole("heading", { name: "Fast idea capture", exact: true }),
   });
 
-  await node.getByRole("heading", { name: "Food diary", exact: true }).click();
+  await node.getByRole("heading", { name: "Fast idea capture", exact: true }).click();
   await expect(node.getByRole("button", { name: "Edit title" })).toBeVisible();
   await expect(node.getByRole("textbox", { name: "Edit node title" })).toHaveCount(0);
 
   await node.getByRole("button", { name: "Edit title" }).click();
   const titleEditor = node.getByRole("textbox", { name: "Edit node title" });
-  await titleEditor.fill("Food journal");
+  await titleEditor.fill("Instant capture");
   await titleEditor.press("Enter");
   const updatedNode = page.locator(".semantic-node").filter({
-    has: page.getByRole("heading", { name: "Food journal", exact: true }),
+    has: page.getByRole("heading", { name: "Instant capture", exact: true }),
   });
-  await expect(updatedNode.getByRole("heading", { name: "Food journal", exact: true })).toBeVisible();
+  await expect(updatedNode.getByRole("heading", { name: "Instant capture", exact: true })).toBeVisible();
 
   await updatedNode.getByRole("button", { name: "Edit description" }).click();
   const descriptionEditor = updatedNode.getByRole("textbox", { name: "Edit node description" });
-  await descriptionEditor.fill("Log meals and snacks from the canvas.");
+  await descriptionEditor.fill("Capture and connect an idea without leaving the canvas.");
   await descriptionEditor.press("Control+Enter");
-  await expect(updatedNode.getByText("Log meals and snacks from the canvas.", { exact: true })).toBeVisible();
+  await expect(updatedNode.getByText("Capture and connect an idea without leaving the canvas.", { exact: true })).toBeVisible();
 
   await page.waitForTimeout(350);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Food journal", exact: true })).toBeVisible();
-  await expect(page.getByText("Log meals and snacks from the canvas.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Instant capture", exact: true })).toBeVisible();
+  await expect(page.getByText("Capture and connect an idea without leaving the canvas.", { exact: true })).toBeVisible();
 });
 
 test("selected nodes expose a contextual details action", async ({ page }) => {
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
   const node = page.locator(".semantic-node").filter({
-    has: page.getByRole("heading", { name: "Nutrition coach", exact: true }),
+    has: page.getByRole("heading", { name: "Agent handoff", exact: true }),
   });
 
-  await expect(node.getByRole("button", { name: "Open details for Nutrition coach" })).toHaveCount(0);
-  await node.getByRole("heading", { name: "Nutrition coach", exact: true }).click();
-  const detailsButton = node.getByRole("button", { name: "Open details for Nutrition coach" });
+  await expect(node.getByRole("button", { name: "Open details for Agent handoff" })).toHaveCount(0);
+  await node.getByRole("heading", { name: "Agent handoff", exact: true }).click();
+  const detailsButton = node.getByRole("button", { name: "Open details for Agent handoff" });
   await expect(detailsButton).toBeVisible();
   await expect(detailsButton).toHaveText(/Details/);
 
   await detailsButton.click();
   await expect(detailsButton).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByRole("complementary", { name: "Inspector" })).toBeVisible();
-  await expect(page.getByRole("complementary", { name: "Inspector" }).getByRole("heading", { name: "Nutrition coach" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Inspector" }).getByRole("heading", { name: "Agent handoff" })).toBeVisible();
 });
 
 test("node evidence opens a single source externally and aggregates multiple sources in Details", async ({ page }) => {
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByLabel("Workspace navigation").getByRole("button", { name: "Local-first foundations" }).click();
   const node = page.locator(".semantic-node").filter({
-    has: page.getByRole("heading", { name: "Nutrition coach", exact: true }),
+    has: page.getByRole("heading", { name: "Local-first software", exact: true }),
   });
-  const sourceLink = node.getByRole("link", { name: "Open source: MyFitnessPal Nutrition Coach" });
+  const sourceLink = node.getByRole("link", { name: "Open source: MDN IndexedDB guide" });
 
   await expect(sourceLink).toHaveAttribute("target", "_blank");
   await expect(sourceLink).toHaveAttribute("rel", "noopener noreferrer");
   await expect(
-    node.getByRole("link", { name: "Open 1 source for Nutrition coach: MyFitnessPal Nutrition Coach" }),
+    node.getByRole("link", { name: "Open 1 source for Local-first software: MDN IndexedDB guide" }),
   ).toBeVisible();
   const popupPromise = page.waitForEvent("popup");
   await sourceLink.click();
   const popup = await popupPromise;
-  await expect(popup).toHaveURL(/support\.myfitnesspal\.com/);
+  await expect(popup).toHaveURL(/developer\.mozilla\.org/);
   await popup.close();
 
-  await node.getByRole("heading", { name: "Nutrition coach", exact: true }).click();
-  await node.getByRole("button", { name: "Open details for Nutrition coach" }).click();
+  await node.getByRole("heading", { name: "Local-first software", exact: true }).click();
+  await node.getByRole("button", { name: "Open details for Local-first software" }).click();
   const inspector = page.getByRole("complementary", { name: "Inspector" });
   await inspector.getByPlaceholder("Source label").fill("Supporting research");
   await inspector.getByPlaceholder("https://…").fill("https://example.com/research");
   await inspector.getByRole("button", { name: "Add source" }).click();
-  await page.getByRole("button", { name: "Close inspector" }).click();
+  await page.getByRole("button", { name: "Close inspector", exact: true }).click({ force: true });
 
-  await expect(node.getByRole("button", { name: "View 2 sources for Nutrition coach" })).toBeVisible();
-  await page.getByRole("heading", { name: "Barcode & meal scan", exact: true }).click();
-  await node.getByRole("button", { name: "View evidence for Nutrition coach" }).click();
+  await expect(node.getByRole("button", { name: "View 2 sources for Local-first software" })).toBeVisible();
+  await page.getByRole("heading", { name: "Atomic mutations", exact: true }).click({ force: true });
+  await node.getByRole("button", { name: "View evidence for Local-first software" }).click({ force: true });
   await expect(inspector).toBeVisible();
-  await expect(inspector.getByRole("heading", { name: "Nutrition coach", exact: true })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Evidence" })).toBeFocused();
+  await expect(inspector.getByRole("heading", { name: "Local-first software", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Evidence" })).toBeVisible();
 });
 
 test("quiz nodes reveal the correct answer after a learner chooses", async ({ page }) => {
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
-  await page.getByLabel("Workspace navigation").getByRole("button", { name: "Understanding macronutrients" }).click();
-  const quiz = page.getByLabel("Quiz: Quick check");
-  await expect(quiz.getByRole("button", { name: "Protein" })).toBeVisible();
-  await expect(quiz.getByRole("button", { name: "Carbohydrate" })).toBeVisible();
-  await expect(quiz.getByRole("button", { name: "Fat", exact: true })).toBeVisible();
-  await expect(quiz.getByRole("button", { name: "Water" })).toBeVisible();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
+  await page.getByLabel("Workspace navigation").getByRole("button", { name: "Local-first foundations" }).click();
+  const quiz = page.getByLabel("Quiz: Architecture check");
+  await expect(quiz.getByRole("button", { name: "React Flow nodes" })).toBeVisible();
+  await expect(quiz.getByRole("button", { name: "The workspace document" })).toBeVisible();
+  await expect(quiz.getByRole("button", { name: "The minimap" })).toBeVisible();
+  await expect(quiz.getByRole("button", { name: "Browser history" })).toBeVisible();
 
-  await quiz.getByRole("button", { name: "Protein" }).click();
+  await quiz.getByRole("button", { name: "React Flow nodes" }).click();
   const incorrectFeedback = quiz.getByRole("status");
   await expect(incorrectFeedback).toContainText("Not quite");
-  await expect(incorrectFeedback).toContainText("Correct answer: Fat");
-  await expect(incorrectFeedback).toContainText("Fat provides 9 calories per gram");
+  await expect(incorrectFeedback).toContainText("Correct answer: The workspace document");
+  await expect(incorrectFeedback).toContainText("The workspace document owns durable maps");
 
   await quiz.getByRole("button", { name: "Try again" }).click();
   await expect(incorrectFeedback).not.toBeVisible();
-  await quiz.getByRole("button", { name: "Fat", exact: true }).click();
+  await quiz.getByRole("button", { name: "The workspace document", exact: true }).click();
   await expect(quiz.getByRole("status")).toContainText("Correct");
 });
 
@@ -291,14 +295,14 @@ test("agent highlights dim the rest of the canvas until cleared", async ({ page 
   });
   await page.reload();
   await expect(page.getByText("WebMCP ready")).toBeVisible();
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
 
   await page.evaluate(async () => {
     const tools = (window as unknown as {
       __nodebookTools: Record<string, { execute: (input: unknown) => unknown }>;
     }).__nodebookTools;
     await tools.highlight_path.execute({
-      nodeIds: ["project-mfp", "group-log", "feature-food"],
+      nodeIds: ["project-nodebook", "group-foundation", "feature-fast-capture"],
       tone: "risk",
     });
   });
@@ -331,12 +335,12 @@ test("people and named agents can comment on a node", async ({ page }) => {
   });
   await page.reload();
   await expect(page.getByText("WebMCP ready")).toBeVisible();
-  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Load complete demo" }).click();
 
   const node = page.locator(".semantic-node", {
-    has: page.getByRole("heading", { name: "Food diary", exact: true }),
+    has: page.getByRole("heading", { name: "Evidence on decisions", exact: true }),
   });
-  await node.getByRole("button", { name: "Add comment to Food diary" }).click();
+  await node.getByRole("button", { name: "Add comment to Evidence on decisions" }).click();
   const inspector = page.getByRole("complementary", { name: "Inspector" });
   await inspector.getByRole("textbox", { name: "Comment" }).fill("Please verify the empty state.");
   await inspector.getByRole("button", { name: "Comment", exact: true }).click();
@@ -348,7 +352,7 @@ test("people and named agents can comment on a node", async ({ page }) => {
       __nodebookTools: Record<string, { execute: (input: unknown) => unknown }>;
     }).__nodebookTools;
     tools.add_comment.execute({
-      nodeId: "feature-food",
+      nodeId: "feature-evidence",
       body: "I checked it; the fallback copy needs a revision.",
       agentName: "Codex",
     });
@@ -356,5 +360,5 @@ test("people and named agents can comment on a node", async ({ page }) => {
 
   await expect(inspector.getByText("I checked it; the fallback copy needs a revision.")).toBeVisible();
   await expect(inspector.getByText("Codex", { exact: true })).toBeVisible();
-  await expect(node.getByRole("button", { name: "View 2 comments on Food diary" })).toBeVisible();
+  await expect(node.getByRole("button", { name: "View 2 comments on Evidence on decisions" })).toBeVisible();
 });

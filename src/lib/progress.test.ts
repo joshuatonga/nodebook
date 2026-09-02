@@ -5,12 +5,17 @@ import { calculateDeliveryProgress } from "@/lib/progress";
 describe("calculateDeliveryProgress", () => {
   it("counts only included features and weights partial delivery by half", () => {
     const workspace = createDemoWorkspace();
-    workspace.nodes["feature-food"].deliveryStatus = "complete";
-    workspace.nodes["feature-macros"].deliveryStatus = "partial";
+    for (const node of Object.values(workspace.nodes)) {
+      if (node.kind === "feature") node.scopeState = "proposed";
+    }
+    workspace.nodes["feature-canvas"].scopeState = "included";
+    workspace.nodes["feature-canvas"].deliveryStatus = "complete";
+    workspace.nodes["feature-fast-capture"].scopeState = "included";
+    workspace.nodes["feature-fast-capture"].deliveryStatus = "partial";
 
     expect(calculateDeliveryProgress(workspace)).toMatchObject({
       included: 2,
-      proposed: 8,
+      proposed: 27,
       excluded: 0,
       complete: 1,
       partial: 1,
@@ -22,8 +27,10 @@ describe("calculateDeliveryProgress", () => {
 
   it("keeps excluded and proposed features outside the denominator", () => {
     const workspace = createDemoWorkspace();
-    workspace.nodes["feature-food"].scopeState = "excluded";
-    workspace.nodes["feature-macros"].scopeState = "proposed";
+    for (const node of Object.values(workspace.nodes)) {
+      if (node.kind === "feature") node.scopeState = "proposed";
+    }
+    workspace.nodes["feature-canvas"].scopeState = "excluded";
 
     expect(calculateDeliveryProgress(workspace)).toMatchObject({ total: 0, percentage: 0 });
   });

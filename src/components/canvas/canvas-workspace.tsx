@@ -438,7 +438,7 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
           </div>
           <div className="empty-canvas-actions">
             <button className="toolbar-button" onClick={() => addManualNode()} type="button"><Plus size={15} /> {emptyState.addLabel}</button>
-            <button className="toolbar-button primary" onClick={loadDemoWorkspace} type="button">Load source-backed demo</button>
+            <button className="toolbar-button primary" onClick={loadDemoWorkspace} type="button">Explore complete demo</button>
           </div>
         </Panel>
       ) : null}

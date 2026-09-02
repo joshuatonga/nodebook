@@ -2,13 +2,13 @@
 
 Nodebook is a local-first infinite canvas where a person and an external agent can research, scope, trace, and learn a product together. It contributes durable visual state and deterministic WebMCP tools—there is no embedded chatbot, search backend, account, or server-side data store.
 
-The challenge demo starts from a blank canvas with:
+The included demo opens a complete product workspace for:
 
-> Research MyFitnessPal and map the features we’d need for a clone.
+> Ship Nodebook v1 as a dependable local-first workspace.
 
 **Live app:** [nodebook.tinyinternet.dev](https://nodebook.tinyinternet.dev/)
 
-An agent researches with its own capabilities and uses Nodebook’s WebMCP tools to create the cited feature map. The human then reviews scope, locks decisions, and asks the agent to expand selected nodes into linked trace and learning maps.
+It includes a product roadmap, two end-to-end journeys, a local-first learning map, release gates, and a research parking lot. The human can review scope, inspect evidence and comments, lock decisions, and ask an agent to extend any part of the workspace.
 
 ## What is included
 
@@ -19,7 +19,7 @@ An agent researches with its own capabilities and uses Nodebook’s WebMCP tools
 - Deterministic Dagre layout, path highlighting, selection, minimap, and fit view
 - One undo step and one activity entry for every agent mutation
 - IndexedDB persistence plus JSON import/export
-- Source-backed MyFitnessPal example available through **Load demo**
+- Detailed Nodebook launch workspace available through **Load complete demo**
 - Graceful “WebMCP unavailable” state in unsupported browsers
 - No accounts, environment variables, API routes, cookies, analytics, or cloud database
 
@@ -101,13 +101,13 @@ All schemas reject unknown properties, unsafe research URLs, missing IDs, overlo
 
 ## Demo prompts
 
-1. `Research MyFitnessPal and map the features we’d need for a clone. Cite every researched feature.`
-2. Select **Food diary**, press **Trace**, then ask: `Create an end-to-end trace map for the selected feature.`
-3. Select **Update macro totals**, press **Learn**, then ask: `Create a learning map for the selected concept with prerequisites, examples, an exercise, and a multiple-choice quiz.`
-4. `Highlight the critical food logging path and focus it on the canvas.`
-5. `Comment on Food diary as Codex with the main edge case we should test.`
+1. `Review the Product roadmap and identify the highest-risk proposed feature. Add your reasoning as a comment.`
+2. Select **Fast idea capture**, press **Trace**, then ask: `Expand this journey with failure states and highlight the critical path.`
+3. Open **Local-first foundations** and ask: `Add a practical exercise for testing persistence recovery.`
+4. `Highlight the path from Ship Nodebook v1 to Fast idea capture and focus it on the canvas.`
+5. `Review Release readiness and comment on the next quality gate we should complete.`
 
-The optional **Load demo** button creates the same kind of source-backed workspace without waiting for live research.
+The **Load complete demo** button replaces the current browser workspace with this editable example.
 
 ## Privacy
 
