@@ -285,9 +285,66 @@ button:disabled {
   transition: background 120ms ease, color 120ms ease;
 }
 
+.new-canvas-control {
+  position: relative;
+}
+
 .new-canvas-button:hover {
   background: var(--sidebar-accent);
   color: var(--sidebar-foreground);
+}
+
+.canvas-type-menu {
+  position: absolute;
+  top: calc(100% - 6px);
+  right: 0;
+  left: 0;
+  z-index: 4;
+  display: grid;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--popover);
+  box-shadow: var(--shadow);
+}
+
+.canvas-type-menu > button {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 9px;
+  padding: 7px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  text-align: left;
+}
+
+.canvas-type-menu > button:hover,
+.canvas-type-menu > button:focus-visible {
+  outline: none;
+  background: var(--sidebar-accent);
+}
+
+.canvas-type-menu > button > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.canvas-type-menu strong {
+  font-size: 10px;
+  font-weight: 640;
+}
+
+.canvas-type-menu small {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .map-list-heading,
@@ -344,6 +401,11 @@ button:disabled {
   color: var(--muted-foreground);
 }
 
+.map-kind-indicator.blank {
+  background: var(--sidebar-accent);
+  color: var(--muted-foreground);
+}
+
 .map-kind-indicator.build {
   background: var(--purple-light);
   color: var(--purple);
@@ -386,6 +448,10 @@ button:disabled {
   font-weight: 620;
 }
 
+.map-link.active[data-map-kind="blank"] {
+  background: var(--sidebar-accent);
+}
+
 .map-link.active[data-map-kind="build"] {
   background: color-mix(in oklch, var(--purple) 11%, var(--sidebar));
 }
@@ -396,6 +462,11 @@ button:disabled {
 
 .map-link.active[data-map-kind="learn"] {
   background: color-mix(in oklch, var(--amber) 14%, var(--sidebar));
+}
+
+.map-link.active[data-map-kind="blank"] .map-kind-indicator {
+  background: var(--muted-foreground);
+  color: var(--background);
 }
 
 .map-link.active[data-map-kind="build"] .map-kind-indicator {
@@ -554,7 +625,10 @@ button:disabled {
 }
 
 .breadcrumb-segment button {
+  display: inline-flex;
   max-width: 176px;
+  align-items: center;
+  gap: 5px;
   overflow: hidden;
   padding: 3px 5px;
   border: 0;
@@ -563,6 +637,35 @@ button:disabled {
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.breadcrumb-segment button > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumb-edit-icon {
+  flex: 0 0 auto;
+  opacity: 0.48;
+  transition: opacity 120ms ease;
+}
+
+.breadcrumb-segment button:hover .breadcrumb-edit-icon {
+  opacity: 1;
+}
+
+.breadcrumb-title-editor {
+  width: min(220px, 28vw);
+  height: 27px;
+  padding: 3px 7px;
+  border: 1px solid var(--ring);
+  border-radius: 6px;
+  outline: none;
+  background: var(--background);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 630;
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring) 18%, transparent);
 }
 
 .breadcrumb-segment button:not(:disabled):hover {

@@ -58,7 +58,7 @@ const edgeSchema = z.object({
 const mapSchema = z.object({
   id,
   title: z.string().min(1).max(120),
-  kind: z.enum(["build", "trace", "learn"]),
+  kind: z.enum(["blank", "build", "trace", "learn"]),
   parentNodeId: id.optional(),
   viewport: viewportSchema,
   createdAt: isoDate,

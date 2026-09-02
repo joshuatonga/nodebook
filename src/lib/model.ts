@@ -1,6 +1,6 @@
 export const WORKSPACE_SCHEMA_VERSION = 1 as const;
 
-export type MapKind = "build" | "trace" | "learn";
+export type MapKind = "blank" | "build" | "trace" | "learn";
 export type NodeKind =
   | "project"
   | "group"

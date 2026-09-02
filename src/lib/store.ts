@@ -30,7 +30,8 @@ interface WorkspaceStore {
   loadDemoWorkspace: () => void;
   importWorkspace: (workspace: WorkspaceDocument) => void;
   commitWorkspace: (workspace: WorkspaceDocument, activity: ActivityDescriptor) => void;
-  addCanvas: (kind?: MapKind) => string;
+  addCanvas: (kind: MapKind) => string;
+  renameCanvas: (mapId: string, title: string) => void;
   activateMap: (mapId: string) => void;
   updateMapViewport: (mapId: string, viewport: CanvasMap["viewport"]) => void;
   setSelection: (nodeIds: string[]) => void;
@@ -172,7 +173,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
         set({ workspace: withActivity(workspace, activity) });
       },
 
-      addCanvas: (kind = "build") => {
+      addCanvas: (kind) => {
         const workspace = get().workspace;
         const existingTitles = new Set(Object.values(workspace.maps).map((map) => map.title));
         let title = "Untitled canvas";
@@ -205,6 +206,22 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
           highlight: null,
         });
         return id;
+      },
+
+      renameCanvas: (mapId, title) => {
+        const existing = get().workspace.maps[mapId];
+        const nextTitle = title.trim().slice(0, 120);
+        if (!existing || !nextTitle || nextTitle === existing.title) return;
+
+        const next = cloneDocument(get().workspace);
+        next.maps[mapId] = { ...existing, title: nextTitle, updatedAt: nowIso() };
+        set({
+          workspace: withActivity(next, {
+            source: "human",
+            action: "canvas_renamed",
+            summary: `Renamed ${existing.title} to ${nextTitle}.`,
+          }),
+        });
       },
 
       activateMap: (mapId) => {
@@ -314,13 +331,25 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
         const createdAt = nowIso();
         const id = createId("node");
         const mapNodeCount = Object.values(workspace.nodes).filter((item) => item.mapId === activeMap.id).length;
-        const kind = activeMap.kind === "build" ? "feature" : activeMap.kind === "trace" ? "step" : "concept";
+        const kind = activeMap.kind === "blank"
+          ? "note"
+          : activeMap.kind === "build"
+            ? "feature"
+            : activeMap.kind === "trace"
+              ? "step"
+              : "concept";
         const next = cloneDocument(workspace);
         next.nodes[id] = {
           id,
           mapId: activeMap.id,
           kind,
-          title: activeMap.kind === "build" ? "New feature" : activeMap.kind === "trace" ? "New step" : "New concept",
+          title: activeMap.kind === "blank"
+            ? "New note"
+            : activeMap.kind === "build"
+              ? "New feature"
+              : activeMap.kind === "trace"
+                ? "New step"
+                : "New concept",
           description: "",
           position: { x: 72 + mapNodeCount * 18, y: 72 + mapNodeCount * 12 },
           scopeState: activeMap.kind === "build" ? "included" : undefined,

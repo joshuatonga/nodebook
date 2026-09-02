@@ -8,6 +8,7 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
+  Pencil,
   Plus,
   Redo2,
   Undo2,
@@ -37,14 +38,16 @@ interface TopbarProps {
 export function Topbar({ isInspectorOpen, isSidebarOpen, onToggleInspector, onToggleSidebar }: TopbarProps) {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const webmcpStatus = useWorkspaceStore((state) => state.webmcpStatus);
-  const activateMap = useWorkspaceStore((state) => state.activateMap);
   const acceptAllProposed = useWorkspaceStore((state) => state.acceptAllProposed);
   const addManualNode = useWorkspaceStore((state) => state.addManualNode);
+  const renameCanvas = useWorkspaceStore((state) => state.renameCanvas);
   const importWorkspace = useWorkspaceStore((state) => state.importWorkspace);
   const canUndo = useStore(useWorkspaceStore.temporal, (state) => state.pastStates.length > 0);
   const canRedo = useStore(useWorkspaceStore.temporal, (state) => state.futureStates.length > 0);
   const inputRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [editingMapId, setEditingMapId] = useState<string | null>(null);
+  const [titleDraft, setTitleDraft] = useState("");
   const progress = useMemo(() => calculateDeliveryProgress(workspace), [workspace]);
   const breadcrumbs = useMemo(
     () => buildBreadcrumbs(workspace, workspace.activeMapId),
@@ -59,6 +62,17 @@ export function Topbar({ isInspectorOpen, isSidebarOpen, onToggleInspector, onTo
     } catch (error) {
       setImportError(error instanceof Error ? error.message : "That file is not a valid Nodebook workspace.");
     }
+  }
+
+  function startRenaming(mapId: string, title: string) {
+    setEditingMapId(mapId);
+    setTitleDraft(title);
+  }
+
+  function finishRenaming() {
+    if (!editingMapId) return;
+    renameCanvas(editingMapId, titleDraft);
+    setEditingMapId(null);
   }
 
   return (
@@ -80,14 +94,38 @@ export function Topbar({ isInspectorOpen, isSidebarOpen, onToggleInspector, onTo
             {breadcrumbs.map((crumb, index) => (
               <span className="breadcrumb-segment" key={crumb.id}>
                 {index > 0 ? <ChevronRight size={13} /> : null}
-                <button
-                  disabled={!crumb.mapId}
-                  onClick={() => crumb.mapId && activateMap(crumb.mapId)}
-                  title={crumb.label}
-                  type="button"
-                >
-                  {crumb.label}
-                </button>
+                {crumb.mapId && editingMapId === crumb.mapId ? (
+                  <input
+                    aria-label="Edit canvas title"
+                    autoFocus
+                    className="breadcrumb-title-editor"
+                    maxLength={120}
+                    onBlur={finishRenaming}
+                    onChange={(event) => setTitleDraft(event.target.value)}
+                    onFocus={(event) => event.currentTarget.select()}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        finishRenaming();
+                      }
+                      if (event.key === "Escape") {
+                        event.preventDefault();
+                        setEditingMapId(null);
+                      }
+                    }}
+                    value={titleDraft}
+                  />
+                ) : (
+                  <button
+                    disabled={!crumb.mapId}
+                    onClick={() => crumb.mapId && startRenaming(crumb.mapId, crumb.label)}
+                    title={crumb.mapId ? "Rename canvas" : crumb.label}
+                    type="button"
+                  >
+                    <span>{crumb.label}</span>
+                    {crumb.mapId ? <Pencil aria-hidden="true" className="breadcrumb-edit-icon" size={11} /> : null}
+                  </button>
+                )}
               </span>
             ))}
           </div>

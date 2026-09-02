@@ -9,6 +9,12 @@ describe("workspace imports and migrations", () => {
     expect(deserializeWorkspace(serializeWorkspace(workspace))).toEqual(workspace);
   });
 
+  it("accepts a blank canvas type", () => {
+    const workspace = createDemoWorkspace();
+    workspace.maps["map-myfitnesspal-build"].kind = "blank";
+    expect(parseWorkspaceDocument(workspace).maps["map-myfitnesspal-build"].kind).toBe("blank");
+  });
+
   it("migrates a version zero document and restores missing activity", () => {
     const workspace = createDemoWorkspace();
     const legacy = { ...workspace, schemaVersion: 0 } as Record<string, unknown>;

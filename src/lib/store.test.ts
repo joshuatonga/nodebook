@@ -17,15 +17,15 @@ describe("workspace store", () => {
     expect(useWorkspaceStore.getState().workspace.nodes["feature-food"].title).toBe("Food diary");
   });
 
-  it("creates and opens a blank build canvas as one reversible history step", () => {
+  it("creates and opens a blank canvas as one reversible history step", () => {
     const previousMapId = useWorkspaceStore.getState().workspace.activeMapId;
-    const mapId = useWorkspaceStore.getState().addCanvas();
+    const mapId = useWorkspaceStore.getState().addCanvas("blank");
     const state = useWorkspaceStore.getState();
 
     expect(state.workspace.activeMapId).toBe(mapId);
     expect(state.workspace.maps[mapId]).toMatchObject({
       title: "Untitled canvas",
-      kind: "build",
+      kind: "blank",
       viewport: { x: 0, y: 0, zoom: 0.9 },
     });
     expect(useWorkspaceStore.temporal.getState().pastStates).toHaveLength(1);
@@ -33,6 +33,14 @@ describe("workspace store", () => {
     useWorkspaceStore.temporal.getState().undo();
     expect(useWorkspaceStore.getState().workspace.maps[mapId]).toBeUndefined();
     expect(useWorkspaceStore.getState().workspace.activeMapId).toBe(previousMapId);
+  });
+
+  it("renames a canvas as one reversible history step", () => {
+    useWorkspaceStore.getState().renameCanvas("map-myfitnesspal-build", "Release plan");
+    expect(useWorkspaceStore.getState().workspace.maps["map-myfitnesspal-build"].title).toBe("Release plan");
+
+    useWorkspaceStore.temporal.getState().undo();
+    expect(useWorkspaceStore.getState().workspace.maps["map-myfitnesspal-build"].title).toBe("Feature scope");
   });
 
   it("deletes linked maps with an originating node and restores them on undo", () => {

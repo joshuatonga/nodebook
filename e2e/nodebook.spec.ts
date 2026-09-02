@@ -29,10 +29,25 @@ test("creates and opens a canvas from the sidebar", async ({ page }) => {
   const sidebar = page.getByRole("complementary", { name: "Workspace navigation" });
 
   await sidebar.getByRole("button", { name: "New canvas" }).click();
+  await expect(page.getByRole("menuitem", { name: /Blank canvas/ })).toBeVisible();
+  await page.getByRole("menuitem", { name: /Blank canvas/ }).click();
 
-  await expect(sidebar.getByRole("button", { name: "Untitled canvas" })).toHaveAttribute("data-map-kind", "build");
-  await expect(sidebar.locator(".map-link.active")).toContainText("Untitled canvas");
+  const newCanvas = sidebar.getByRole("button", { name: "Untitled canvas" });
+  await expect(newCanvas).toHaveAttribute("data-map-kind", "blank");
+  await expect(sidebar.locator(".map-link").first()).toContainText("Untitled canvas");
+  await expect(newCanvas).toHaveClass(/active/);
   await expect(page.getByRole("heading", { name: "Map a product with your agent." })).toBeVisible();
+
+  await page.getByLabel("Map breadcrumbs").getByRole("button", { name: "Untitled canvas" }).click();
+  const titleEditor = page.getByRole("textbox", { name: "Edit canvas title" });
+  await titleEditor.fill("Ideas");
+  await titleEditor.press("Enter");
+  await expect(sidebar.getByRole("button", { name: "Ideas" })).toBeVisible();
+
+  await page.waitForTimeout(350);
+  await page.reload();
+  await expect(sidebar.locator(".map-link").first()).toContainText("Ideas");
+  await expect(sidebar.getByRole("button", { name: "Ideas" })).toHaveAttribute("data-map-kind", "blank");
 });
 
 test("demo supports scope review, trace intent, linked maps, undo, and reload persistence", async ({ page }) => {
