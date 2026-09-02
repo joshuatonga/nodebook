@@ -66,7 +66,7 @@ test("deletes a canvas from its hover action and supports undo", async ({ page }
   await expect(sidebar.getByRole("button", { name: "Food logging journey" })).toBeVisible();
 });
 
-test("deletes a selected connection with the keyboard and supports undo", async ({ page }) => {
+test("clearly selects a connection and deletes it by mouse or keyboard with undo", async ({ page }) => {
   await page.getByRole("button", { name: "Load source-backed demo" }).click();
   await page.getByRole("button", { name: "Fit", exact: true }).click();
   const connection = page.locator('[data-testid="rf__edge-edge-log-food"]');
@@ -74,6 +74,14 @@ test("deletes a selected connection with the keyboard and supports undo", async 
   await expect(connection).toBeVisible();
   await connection.click();
   await expect(connection).toHaveClass(/selected/);
+  await expect(connection.locator(".react-flow__edge-path")).toHaveCSS("stroke-width", "3.25px");
+  await page.getByRole("button", { name: "Delete connection" }).click();
+  await expect(connection).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(connection).toBeVisible();
+
+  await connection.click();
   await page.keyboard.press("Delete");
   await expect(connection).toHaveCount(0);
 

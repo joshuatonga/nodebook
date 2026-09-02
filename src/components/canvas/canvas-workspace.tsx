@@ -3,18 +3,21 @@
 import {
   Background,
   BackgroundVariant,
+  BaseEdge,
   Controls,
-  MarkerType,
+  EdgeToolbar,
   MiniMap,
   Panel,
   ReactFlow,
   ReactFlowProvider,
   applyEdgeChanges,
   applyNodeChanges,
+  getSmoothStepPath,
   useReactFlow,
   type Connection,
   type Edge,
   type EdgeChange,
+  type EdgeProps,
   type NodeChange,
   type OnMoveEnd,
 } from "@xyflow/react";
@@ -26,6 +29,86 @@ import { linkedMapsForNode } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
 
 const nodeTypes = { semantic: SemanticNode };
+
+function DeletableEdge({
+  id,
+  label,
+  labelBgBorderRadius,
+  labelBgPadding,
+  labelBgStyle,
+  labelShowBg,
+  labelStyle,
+  pathOptions,
+  selected,
+  sourcePosition,
+  sourceX,
+  sourceY,
+  style,
+  targetPosition,
+  targetX,
+  targetY,
+}: EdgeProps) {
+  const deleteEdges = useWorkspaceStore((state) => state.deleteEdges);
+  const [path, labelX, labelY] = getSmoothStepPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+    borderRadius: pathOptions?.borderRadius,
+    offset: pathOptions?.offset,
+    stepPosition: pathOptions?.stepPosition,
+  });
+  const markerId = `connection-marker-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const edgeColor = selected
+    ? "var(--primary)"
+    : typeof style?.stroke === "string"
+      ? style.stroke
+      : "var(--border-strong)";
+
+  return (
+    <>
+      <defs>
+        <marker id={markerId} markerHeight="10" markerWidth="10" orient="auto" refX="9" refY="5" viewBox="0 0 10 10">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill={edgeColor} />
+        </marker>
+      </defs>
+      <BaseEdge
+        id={id}
+        interactionWidth={24}
+        label={label}
+        labelBgBorderRadius={labelBgBorderRadius}
+        labelBgPadding={labelBgPadding}
+        labelBgStyle={labelBgStyle}
+        labelShowBg={labelShowBg}
+        labelStyle={labelStyle}
+        labelX={labelX}
+        labelY={labelY}
+        markerEnd={`url(#${markerId})`}
+        path={path}
+        style={style}
+      />
+      <EdgeToolbar className="connection-toolbar" edgeId={id} isVisible={selected} x={labelX} y={labelY}>
+        <button
+          aria-label="Delete connection"
+          className="connection-delete nodrag nopan"
+          onClick={(event) => {
+            event.stopPropagation();
+            deleteEdges([id]);
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+          title="Delete connection"
+          type="button"
+        >
+          <X aria-hidden="true" size={14} strokeWidth={2.5} />
+        </button>
+      </EdgeToolbar>
+    </>
+  );
+}
+
+const edgeTypes = { deletable: DeletableEdge };
 
 function colorForKind(kind: string): string {
   if (kind === "project") return "var(--chart-5)";
@@ -147,15 +230,9 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
           source: edge.source,
           target: edge.target,
           label: edge.label,
-          type: "smoothstep",
+          type: "deletable",
           animated: isHighlighted,
           className: hasVisibleHighlight ? (isHighlighted ? "path-highlighted" : "path-dimmed") : undefined,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 14,
-            height: 14,
-            color: isHighlighted ? highlightColor : "var(--muted-foreground)",
-          },
           style: {
             stroke: isHighlighted ? highlightColor : "var(--border-strong)",
             strokeWidth: isHighlighted ? 2.25 : 1.35,
@@ -221,6 +298,7 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
       colorMode="light"
       defaultViewport={activeMap.viewport}
       deleteKeyCode={["Backspace", "Delete"]}
+      edgeTypes={edgeTypes}
       edges={flowEdges}
       fitViewOptions={{ padding: 0.22, maxZoom: 1.25, duration: 500 }}
       minZoom={0.18}

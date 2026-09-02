@@ -836,8 +836,59 @@ button:disabled {
   transition: opacity 160ms ease;
 }
 
+.react-flow__edge .react-flow__edge-path {
+  transition: stroke 120ms ease, stroke-width 120ms ease, filter 120ms ease;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--primary) !important;
+  stroke-width: 3.25px !important;
+  filter: drop-shadow(0 0 3px color-mix(in oklch, var(--primary) 48%, transparent));
+}
+
+.react-flow__edge.selected .react-flow__edge-interaction {
+  stroke: color-mix(in oklch, var(--primary) 16%, transparent);
+  stroke-opacity: 1;
+}
+
 .react-flow__edge.path-dimmed {
   opacity: 0.12;
+}
+
+.react-flow__edge.path-dimmed.selected {
+  opacity: 1;
+}
+
+.connection-toolbar {
+  display: grid;
+  place-items: center;
+}
+
+.connection-delete {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid color-mix(in oklch, var(--destructive) 48%, var(--border));
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--destructive);
+  box-shadow: 0 3px 10px oklch(0.141 0.005 285.823 / 18%);
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.connection-delete:hover,
+.connection-delete:focus-visible {
+  border-color: var(--destructive);
+  background: var(--destructive);
+  color: var(--primary-foreground);
+  outline: none;
+  transform: scale(1.08);
+}
+
+.connection-delete:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 22%, transparent);
 }
 
 .semantic-node {
