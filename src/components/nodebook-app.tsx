@@ -4,6 +4,7 @@ import { CanvasWorkspace } from "@/components/canvas/canvas-workspace";
 import { Inspector } from "@/components/inspector";
 import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
+import { WebMcpDialog } from "@/components/webmcp-dialog";
 import { useWebMcp } from "@/hooks/use-webmcp";
 import { useWorkspacePersistence } from "@/hooks/use-workspace-persistence";
 import { useWorkspaceStore } from "@/lib/store";
@@ -14,8 +15,10 @@ export function NodebookApp() {
   useWorkspacePersistence();
   useWebMcp();
   const hydrated = useWorkspaceStore((state) => state.hydrated);
+  const webmcpStatus = useWorkspaceStore((state) => state.webmcpStatus);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+  const [isWebMcpDialogOpen, setIsWebMcpDialogOpen] = useState(false);
   const [inspectorFocus, setInspectorFocus] = useState<{ id: number; section: "evidence" | "comments" } | null>(null);
   const shouldReduceMotion = useReducedMotion();
   const openInspector = useCallback(() => {
@@ -70,6 +73,7 @@ export function NodebookApp() {
           <Topbar
             isInspectorOpen={isInspectorOpen}
             isSidebarOpen={isSidebarOpen}
+            onOpenWebMcp={() => setIsWebMcpDialogOpen(true)}
             onToggleInspector={() => {
               setInspectorFocus(null);
               setIsInspectorOpen((isOpen) => !isOpen);
@@ -106,6 +110,11 @@ export function NodebookApp() {
             ) : null}
           </AnimatePresence>
         </motion.div>
+        <WebMcpDialog
+          isOpen={isWebMcpDialogOpen}
+          onClose={() => setIsWebMcpDialogOpen(false)}
+          status={webmcpStatus}
+        />
       </div>
     </MotionConfig>
   );

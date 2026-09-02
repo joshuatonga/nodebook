@@ -31,11 +31,12 @@ const statusLabel = {
 interface TopbarProps {
   isInspectorOpen: boolean;
   isSidebarOpen: boolean;
+  onOpenWebMcp: () => void;
   onToggleInspector: () => void;
   onToggleSidebar: () => void;
 }
 
-export function Topbar({ isInspectorOpen, isSidebarOpen, onToggleInspector, onToggleSidebar }: TopbarProps) {
+export function Topbar({ isInspectorOpen, isSidebarOpen, onOpenWebMcp, onToggleInspector, onToggleSidebar }: TopbarProps) {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const webmcpStatus = useWorkspaceStore((state) => state.webmcpStatus);
   const acceptAllProposed = useWorkspaceStore((state) => state.acceptAllProposed);
@@ -131,9 +132,16 @@ export function Topbar({ isInspectorOpen, isSidebarOpen, onToggleInspector, onTo
           </div>
         </div>
         <div className="topbar-actions">
-          <div className={`webmcp-status ${webmcpStatus}`} title="External agents discover Nodebook tools through the browser">
-            <span /> {statusLabel[webmcpStatus]}
-          </div>
+          <button
+            aria-controls="webmcp-dialog"
+            aria-haspopup="dialog"
+            className={`webmcp-status ${webmcpStatus}`}
+            onClick={onOpenWebMcp}
+            title="Learn about Nodebook’s tools for AI agents"
+            type="button"
+          >
+            <span aria-hidden="true" /> {statusLabel[webmcpStatus]}
+          </button>
           <button
             aria-label="Undo"
             className="icon-button"

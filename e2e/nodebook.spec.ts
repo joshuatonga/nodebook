@@ -25,6 +25,24 @@ test("first launch is a blank agent-ready workspace with an unsupported fallback
   await expect(page.getByRole("complementary", { name: "Workspace navigation" })).toBeVisible();
 });
 
+test("WebMCP status opens an explainer with tools and example prompts", async ({ page }) => {
+  await page.getByRole("button", { name: "WebMCP unavailable" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "WebMCP" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "What is WebMCP?" })).toBeVisible();
+  await expect(dialog.getByText("get_workspace", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("highlight_path", { exact: true })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Try asking" })).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+
+  await page.getByRole("button", { name: "WebMCP unavailable" }).click();
+  await dialog.getByRole("button", { name: "Close WebMCP information" }).click();
+  await expect(dialog).not.toBeVisible();
+});
+
 test("creates and opens a canvas from the sidebar", async ({ page }) => {
   const sidebar = page.getByRole("complementary", { name: "Workspace navigation" });
 
