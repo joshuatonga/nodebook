@@ -33,6 +33,30 @@ describe("workspace store", () => {
     expect(useWorkspaceStore.getState().workspace.nodes["feature-food"].comments).toEqual([]);
   });
 
+  it("creates a positioned node and connection as one reversible history step", () => {
+    const id = useWorkspaceStore.getState().addManualNode({
+      position: { x: 840, y: 312 },
+      connectFrom: "feature-food",
+    });
+    const state = useWorkspaceStore.getState();
+    const connection = Object.values(state.workspace.edges).find((edge) => edge.target === id);
+
+    expect(id).not.toBeNull();
+    expect(state.workspace.nodes[id!].position).toEqual({ x: 840, y: 312 });
+    expect(connection).toMatchObject({
+      mapId: "map-myfitnesspal-build",
+      source: "feature-food",
+      target: id,
+      relation: "related_to",
+    });
+    expect(state.workspace.activity[0].summary).toContain("connected it to Food diary");
+    expect(useWorkspaceStore.temporal.getState().pastStates).toHaveLength(1);
+
+    useWorkspaceStore.temporal.getState().undo();
+    expect(useWorkspaceStore.getState().workspace.nodes[id!]).toBeUndefined();
+    expect(useWorkspaceStore.getState().workspace.edges[connection!.id]).toBeUndefined();
+  });
+
   it("creates and opens a blank canvas as one reversible history step", () => {
     const previousMapId = useWorkspaceStore.getState().workspace.activeMapId;
     const mapId = useWorkspaceStore.getState().addCanvas("blank");

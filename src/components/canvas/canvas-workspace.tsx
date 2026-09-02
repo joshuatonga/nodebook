@@ -21,8 +21,8 @@ import {
   type NodeChange,
   type OnMoveEnd,
 } from "@xyflow/react";
-import { Focus, LayoutDashboard, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Focus, GitBranch, LayoutDashboard, MousePointer2, Plus, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { SemanticNode, type SemanticFlowNode } from "@/components/canvas/semantic-node";
 import { layoutNodes } from "@/lib/layout";
 import { linkedMapsForNode } from "@/lib/model";
@@ -133,12 +133,20 @@ interface CanvasWorkspaceProps {
   onOpenInspector: () => void;
 }
 
+interface CanvasCreateMenuState {
+  left: number;
+  top: number;
+  position: { x: number; y: number };
+  sourceNodeId?: string;
+}
+
 function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenInspector }: CanvasWorkspaceProps) {
   const workspace = useWorkspaceStore((state) => state.workspace);
   const selectedNodeIds = useWorkspaceStore((state) => state.selectedNodeIds);
   const highlight = useWorkspaceStore((state) => state.highlight);
   const viewportCommand = useWorkspaceStore((state) => state.viewportCommand);
   const setSelection = useWorkspaceStore((state) => state.setSelection);
+  const addManualNode = useWorkspaceStore((state) => state.addManualNode);
   const connectNodes = useWorkspaceStore((state) => state.connectNodes);
   const deleteEdges = useWorkspaceStore((state) => state.deleteEdges);
   const deleteNodes = useWorkspaceStore((state) => state.deleteNodes);
@@ -151,6 +159,10 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
   const documentNodes = workspace.nodes;
   const documentEdges = workspace.edges;
   const activeMapId = workspace.activeMapId;
+  const { screenToFlowPosition } = useReactFlow();
+  const flowWrapperRef = useRef<HTMLDivElement>(null);
+  const createActionRef = useRef<HTMLButtonElement>(null);
+  const [createMenu, setCreateMenu] = useState<CanvasCreateMenuState | null>(null);
   const mapNodes = useMemo(
     () => Object.values(documentNodes).filter((node) => node.mapId === activeMapId),
     [activeMapId, documentNodes],
@@ -182,6 +194,27 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
     },
     [onOpenComments, setSelection],
   );
+  const addConnectedNode = useCallback(
+    (sourceNodeId: string) => {
+      const sourceNode = documentNodes[sourceNodeId];
+      if (!sourceNode || sourceNode.mapId !== activeMapId) return;
+
+      const position = { x: sourceNode.position.x + 312, y: sourceNode.position.y };
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const overlaps = mapNodes.some(
+          (node) =>
+            node.id !== sourceNodeId &&
+            Math.abs(node.position.x - position.x) < 252 &&
+            Math.abs(node.position.y - position.y) < 124,
+        );
+        if (!overlaps) break;
+        position.y += 144;
+      }
+      addManualNode({ position, connectFrom: sourceNodeId });
+      setCreateMenu(null);
+    },
+    [activeMapId, addManualNode, documentNodes, mapNodes],
+  );
 
   const projectedNodes = useMemo<SemanticFlowNode[]>(
     () =>
@@ -203,12 +236,13 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
           onOpenDetails: onOpenInspector,
           onOpenComments: onOpenNodeComments,
           onOpenEvidence: onOpenNodeEvidence,
+          onAddConnectedNode: addConnectedNode,
         },
         draggable: true,
       })),
     // The primitive link fingerprint deliberately ignores viewport-only map updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hasVisibleHighlight, highlight?.tone, highlightedNodeIds, isInspectorOpen, mapLinksFingerprint, mapNodes, onOpenInspector, onOpenNodeComments, onOpenNodeEvidence, selectedNodeIds],
+    [addConnectedNode, hasVisibleHighlight, highlight?.tone, highlightedNodeIds, isInspectorOpen, mapLinksFingerprint, mapNodes, onOpenInspector, onOpenNodeComments, onOpenNodeEvidence, selectedNodeIds],
   );
   const [flowNodes, setFlowNodes] = useState<SemanticFlowNode[]>(projectedNodes);
 
@@ -282,6 +316,46 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
     [activeMap, updateMapViewport],
   );
 
+  const openCreateMenu = useCallback(
+    (event: ReactMouseEvent | MouseEvent) => {
+      event.preventDefault();
+      const bounds = flowWrapperRef.current?.getBoundingClientRect();
+      if (!bounds) return;
+      const flowPoint = screenToFlowPosition(
+        { x: event.clientX, y: event.clientY },
+        { snapToGrid: true, snapGrid: [12, 12] },
+      );
+      const menuWidth = 236;
+      const menuHeight = selectedNodeIds.length === 1 ? 166 : 128;
+      setCreateMenu({
+        left: Math.max(12, Math.min(event.clientX - bounds.left + 8, bounds.width - menuWidth - 12)),
+        top: Math.max(12, Math.min(event.clientY - bounds.top + 8, bounds.height - menuHeight - 12)),
+        position: { x: flowPoint.x - 120, y: flowPoint.y - 54 },
+        sourceNodeId: selectedNodeIds.length === 1 ? selectedNodeIds[0] : undefined,
+      });
+    },
+    [screenToFlowPosition, selectedNodeIds],
+  );
+
+  useEffect(() => {
+    if (!createMenu) return;
+    createActionRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setCreateMenu(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [createMenu]);
+
+  function createNodeAtMenu(connectToSelection: boolean) {
+    if (!createMenu) return;
+    addManualNode({
+      position: createMenu.position,
+      connectFrom: connectToSelection ? createMenu.sourceNodeId : undefined,
+    });
+    setCreateMenu(null);
+  }
+
   function autoLayout() {
     const direction = activeMap?.kind === "learn" ? "TB" : "LR";
     const laidOut = layoutNodes(mapNodes, mapEdges, direction);
@@ -295,6 +369,7 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
 
   return (
     <ReactFlow
+      ref={flowWrapperRef}
       colorMode="light"
       defaultViewport={activeMap.viewport}
       deleteKeyCode={["Backspace", "Delete"]}
@@ -308,12 +383,17 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
       onConnect={onConnect}
       onEdgesChange={onEdgesChange}
       onMoveEnd={onMoveEnd}
-      onNodeClick={(_event, node) => setSelection([node.id])}
+      onMoveStart={() => setCreateMenu(null)}
+      onNodeClick={(_event, node) => {
+        setCreateMenu(null);
+        setSelection([node.id]);
+      }}
       onNodeDragStop={onNodeDragStop}
       onNodesChange={onNodesChange}
       onEdgesDelete={(edges) => deleteEdges(edges.map((edge) => edge.id))}
       onNodesDelete={(nodes) => deleteNodes(nodes.map((node) => node.id))}
-      onPaneClick={() => setSelection([])}
+      onPaneClick={openCreateMenu}
+      onPaneContextMenu={openCreateMenu}
       selectionOnDrag
       snapGrid={[12, 12]}
       snapToGrid
@@ -327,6 +407,9 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
         zoomable
       />
       <Controls position="bottom-center" showInteractive={false} />
+      <Panel className="canvas-create-hint" position="bottom-left">
+        <MousePointer2 aria-hidden="true" size={13} /> Click the canvas to add a node
+      </Panel>
       <Panel className="canvas-tools" position="top-right">
         <button onClick={autoLayout} title="Auto-layout this map" type="button">
           <LayoutDashboard size={15} /> Layout
@@ -349,9 +432,54 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
           <p>Ask your external agent to research the product, then let it create a durable, cited map here through WebMCP.</p>
           <code>Research MyFitnessPal and map the features we’d need for a clone.</code>
           <div>
+            <button className="toolbar-button" onClick={() => addManualNode()} type="button"><Plus size={15} /> Add your first node</button>
             <button className="toolbar-button primary" onClick={loadDemoWorkspace} type="button">Load source-backed demo</button>
           </div>
         </Panel>
+      ) : null}
+      {createMenu ? (
+        <div
+          aria-label="Create node"
+          className="canvas-create-menu nodrag nopan nowheel"
+          onContextMenu={(event) => event.preventDefault()}
+          onPointerDown={(event) => event.stopPropagation()}
+          role="dialog"
+          style={{ left: createMenu.left, top: createMenu.top }}
+        >
+          <div className="canvas-create-heading">
+            <span>CREATE HERE</span>
+            <button aria-label="Close create menu" onClick={() => setCreateMenu(null)} type="button">
+              <X aria-hidden="true" size={13} />
+            </button>
+          </div>
+          {createMenu.sourceNodeId && documentNodes[createMenu.sourceNodeId] ? (
+            <>
+              <button
+                className="canvas-create-action primary"
+                onClick={() => createNodeAtMenu(true)}
+                ref={createActionRef}
+                type="button"
+              >
+                <GitBranch aria-hidden="true" size={15} />
+                <span><strong>Add &amp; connect</strong><small>From {documentNodes[createMenu.sourceNodeId].title}</small></span>
+              </button>
+              <button className="canvas-create-action" onClick={() => createNodeAtMenu(false)} type="button">
+                <Plus aria-hidden="true" size={15} />
+                <span><strong>Add without connection</strong><small>Create an independent node</small></span>
+              </button>
+            </>
+          ) : (
+            <button
+              className="canvas-create-action primary"
+              onClick={() => createNodeAtMenu(false)}
+              ref={createActionRef}
+              type="button"
+            >
+              <Plus aria-hidden="true" size={15} />
+              <span><strong>Add node here</strong><small>You can connect it from either handle</small></span>
+            </button>
+          )}
+        </div>
       ) : null}
       <ViewportCommander commandId={viewportCommand?.id} nodeIds={viewportCommand?.nodeIds ?? []} />
     </ReactFlow>

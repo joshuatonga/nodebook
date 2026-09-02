@@ -17,6 +17,11 @@ import type {
   NodeComment,
 } from "@/lib/model";
 
+interface AddManualNodeOptions {
+  position?: CanvasNode["position"];
+  connectFrom?: string;
+}
+
 interface WorkspaceStore {
   workspace: WorkspaceDocument;
   hydrated: boolean;
@@ -44,7 +49,7 @@ interface WorkspaceStore {
   setWebMcpStatus: (status: WebMcpStatus) => void;
   updateNode: (nodeId: string, patch: Partial<CanvasNode>) => void;
   updateNodePositions: (updates: Array<{ id: string; position: CanvasNode["position"] }>) => void;
-  addManualNode: () => string | null;
+  addManualNode: (options?: AddManualNodeOptions) => string | null;
   connectNodes: (source: string, target: string) => void;
   deleteEdges: (edgeIds: string[]) => void;
   deleteNodes: (nodeIds: string[]) => void;
@@ -374,7 +379,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
         });
       },
 
-      addManualNode: () => {
+      addManualNode: (options) => {
         const workspace = get().workspace;
         const activeMap = workspace.maps[workspace.activeMapId];
         if (!activeMap) return null;
@@ -389,6 +394,10 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
               ? "step"
               : "concept";
         const next = cloneDocument(workspace);
+        const requestedPosition = options?.position;
+        const position = requestedPosition && Number.isFinite(requestedPosition.x) && Number.isFinite(requestedPosition.y)
+          ? requestedPosition
+          : { x: 72 + mapNodeCount * 18, y: 72 + mapNodeCount * 12 };
         next.nodes[id] = {
           id,
           mapId: activeMap.id,
@@ -401,7 +410,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
                 ? "New step"
                 : "New concept",
           description: "",
-          position: { x: 72 + mapNodeCount * 18, y: 72 + mapNodeCount * 12 },
+          position,
           scopeState: activeMap.kind === "build" ? "included" : undefined,
           deliveryStatus: activeMap.kind === "build" ? "not_started" : undefined,
           learningState: activeMap.kind === "learn" ? "unknown" : undefined,
@@ -412,11 +421,26 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
           createdAt,
           updatedAt: createdAt,
         };
+        const sourceNode = options?.connectFrom ? next.nodes[options.connectFrom] : undefined;
+        if (sourceNode && sourceNode.mapId === activeMap.id) {
+          const edgeId = createId("edge");
+          const relation: CanvasEdge["relation"] = activeMap.kind === "trace" ? "flows_to" : "related_to";
+          next.edges[edgeId] = {
+            id: edgeId,
+            mapId: activeMap.id,
+            source: sourceNode.id,
+            target: id,
+            relation,
+            createdAt,
+          };
+        }
         set({
           workspace: withActivity(next, {
             source: "human",
             action: "node_created",
-            summary: `Added ${next.nodes[id].title}.`,
+            summary: sourceNode && sourceNode.mapId === activeMap.id
+              ? `Added ${next.nodes[id].title} and connected it to ${sourceNode.title}.`
+              : `Added ${next.nodes[id].title}.`,
           }),
           selectedNodeIds: [id],
         });

@@ -1,7 +1,7 @@
 "use client";
 
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
-import { CheckCircle2, ExternalLink, GitBranch, LockKeyhole, MessageCircle, PanelRightOpen, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, ExternalLink, GitBranch, LockKeyhole, MessageCircle, PanelRightOpen, Plus, RotateCcw, XCircle } from "lucide-react";
 import { memo, useLayoutEffect, useRef, useState } from "react";
 import type { CanvasNode, QuizContent } from "@/lib/model";
 import { useWorkspaceStore } from "@/lib/store";
@@ -15,6 +15,7 @@ export interface SemanticNodeData extends Record<string, unknown> {
   onOpenDetails?: () => void;
   onOpenComments?: (nodeId: string) => void;
   onOpenEvidence?: (nodeId: string) => void;
+  onAddConnectedNode?: (nodeId: string) => void;
 }
 
 export type SemanticFlowNode = Node<SemanticNodeData, "semantic">;
@@ -230,6 +231,20 @@ function SemanticNodeView({ data, selected }: NodeProps<SemanticFlowNode>) {
         <NodeEvidenceAction compact node={node} onOpenEvidence={data.onOpenEvidence} />
       </div>
       <Handle className="node-handle" position={Position.Right} type="source" />
+      {isSelected ? (
+        <button
+          aria-label={`Add a connected node after ${node.title}`}
+          className="node-add-connected nodrag nopan"
+          onClick={(event) => {
+            event.stopPropagation();
+            data.onAddConnectedNode?.(node.id);
+          }}
+          title="Add a connected node"
+          type="button"
+        >
+          <Plus aria-hidden="true" size={15} strokeWidth={2.5} />
+        </button>
+      ) : null}
     </article>
   );
 }

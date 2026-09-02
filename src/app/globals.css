@@ -892,6 +892,7 @@ button:disabled {
 }
 
 .semantic-node {
+  position: relative;
   width: 236px;
   min-height: 108px;
   padding: 12px 13px 10px;
@@ -902,6 +903,30 @@ button:disabled {
   color: var(--card-foreground);
   box-shadow: 0 4px 15px oklch(0.141 0.005 285.823 / 5.5%);
   transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.node-add-connected {
+  position: absolute;
+  right: -36px;
+  top: calc(50% + 14px);
+  display: grid;
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--primary);
+  border-radius: 50%;
+  outline: none;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--primary) 24%, transparent);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.node-add-connected:hover,
+.node-add-connected:focus-visible {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 18%, transparent), 0 5px 15px color-mix(in oklch, var(--primary) 30%, transparent);
 }
 
 .semantic-node.kind-project {
@@ -1335,6 +1360,120 @@ button:disabled {
   box-shadow: 0 4px 15px oklch(0.141 0.005 285.823 / 5.5%);
 }
 
+.canvas-create-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 2px 2px !important;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in oklch, var(--border) 78%, transparent);
+  border-radius: 7px;
+  background: color-mix(in oklch, var(--card) 88%, transparent);
+  color: var(--muted-foreground);
+  font-size: 9px;
+  box-shadow: 0 3px 12px oklch(0.141 0.005 285.823 / 4%);
+  pointer-events: none;
+}
+
+.canvas-create-menu {
+  position: absolute;
+  z-index: 12;
+  display: grid;
+  width: 236px;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  outline: none;
+  background: color-mix(in oklch, var(--popover) 97%, transparent);
+  color: var(--popover-foreground);
+  box-shadow: 0 14px 36px oklch(0.141 0.005 285.823 / 16%);
+  backdrop-filter: blur(14px);
+}
+
+.canvas-create-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 20px;
+  padding-left: 5px;
+}
+
+.canvas-create-heading > span {
+  color: var(--muted-foreground);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.canvas-create-heading > button {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted-foreground);
+}
+
+.canvas-create-heading > button:hover,
+.canvas-create-heading > button:focus-visible {
+  outline: none;
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+.canvas-create-action {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  outline: none;
+  background: var(--card);
+  color: var(--card-foreground);
+  text-align: left;
+}
+
+.canvas-create-action > svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.canvas-create-action > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.canvas-create-action strong {
+  font-size: 10px;
+  font-weight: 680;
+}
+
+.canvas-create-action small {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.canvas-create-action:hover,
+.canvas-create-action:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 12%, transparent);
+}
+
+.canvas-create-action.primary {
+  background: color-mix(in oklch, var(--primary) 7%, var(--card));
+}
+
 .empty-canvas {
   width: min(440px, calc(100% - 48px));
   margin-top: 11vh !important;
@@ -1384,6 +1523,13 @@ button:disabled {
   font-size: 9px;
   line-height: 1.45;
   text-align: left;
+}
+
+.empty-canvas > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
 }
 
 .canvas-error,

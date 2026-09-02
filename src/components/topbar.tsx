@@ -194,7 +194,7 @@ export function Topbar({ isInspectorOpen, isSidebarOpen, onToggleInspector, onTo
               <CheckCheck size={15} /> Accept all proposed
             </button>
           ) : null}
-          <button className="toolbar-button primary" onClick={addManualNode} type="button">
+          <button className="toolbar-button primary" onClick={() => addManualNode()} type="button">
             <Plus size={15} /> Add node
           </button>
         </div>
