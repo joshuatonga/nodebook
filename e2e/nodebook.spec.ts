@@ -66,6 +66,21 @@ test("deletes a canvas from its hover action and supports undo", async ({ page }
   await expect(sidebar.getByRole("button", { name: "Food logging journey" })).toBeVisible();
 });
 
+test("deletes a selected connection with the keyboard and supports undo", async ({ page }) => {
+  await page.getByRole("button", { name: "Load source-backed demo" }).click();
+  await page.getByRole("button", { name: "Fit", exact: true }).click();
+  const connection = page.locator('[data-testid="rf__edge-edge-log-food"]');
+
+  await expect(connection).toBeVisible();
+  await connection.click();
+  await expect(connection).toHaveClass(/selected/);
+  await page.keyboard.press("Delete");
+  await expect(connection).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(connection).toBeVisible();
+});
+
 test("demo supports scope review, trace intent, linked maps, undo, and reload persistence", async ({ page }) => {
   await page.getByRole("button", { name: "Load source-backed demo" }).click();
   await expect(page.getByText("MyFitnessPal-style tracker")).toBeVisible();

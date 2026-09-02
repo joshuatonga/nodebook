@@ -9,10 +9,12 @@ import {
   Panel,
   ReactFlow,
   ReactFlowProvider,
+  applyEdgeChanges,
   applyNodeChanges,
   useReactFlow,
   type Connection,
   type Edge,
+  type EdgeChange,
   type NodeChange,
   type OnMoveEnd,
 } from "@xyflow/react";
@@ -55,6 +57,7 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
   const viewportCommand = useWorkspaceStore((state) => state.viewportCommand);
   const setSelection = useWorkspaceStore((state) => state.setSelection);
   const connectNodes = useWorkspaceStore((state) => state.connectNodes);
+  const deleteEdges = useWorkspaceStore((state) => state.deleteEdges);
   const deleteNodes = useWorkspaceStore((state) => state.deleteNodes);
   const updateNodePositions = useWorkspaceStore((state) => state.updateNodePositions);
   const updateMapViewport = useWorkspaceStore((state) => state.updateMapViewport);
@@ -132,7 +135,7 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
     setFlowNodes(projectedNodes);
   }, [projectedNodes]);
 
-  const flowEdges = useMemo<Edge[]>(
+  const projectedEdges = useMemo<Edge[]>(
     () =>
       mapEdges.map((edge) => {
         const isHighlighted =
@@ -166,6 +169,17 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
       }),
     [hasVisibleHighlight, highlight, highlightedNodeIds, mapEdges],
   );
+  const [flowEdges, setFlowEdges] = useState<Edge[]>(projectedEdges);
+
+  useEffect(() => {
+    // Selection is transient in React Flow; durable edge updates still come from the workspace.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFlowEdges(projectedEdges);
+  }, [projectedEdges]);
+
+  const onEdgesChange = useCallback((changes: EdgeChange<Edge>[]) => {
+    setFlowEdges((current) => applyEdgeChanges(changes, current));
+  }, []);
 
   const onNodesChange = useCallback((changes: NodeChange<SemanticFlowNode>[]) => {
     setFlowNodes((current) => applyNodeChanges(changes, current));
@@ -214,10 +228,12 @@ function CanvasInner({ isInspectorOpen, onOpenComments, onOpenEvidence, onOpenIn
       nodes={flowNodes}
       nodesConnectable
       onConnect={onConnect}
+      onEdgesChange={onEdgesChange}
       onMoveEnd={onMoveEnd}
       onNodeClick={(_event, node) => setSelection([node.id])}
       onNodeDragStop={onNodeDragStop}
       onNodesChange={onNodesChange}
+      onEdgesDelete={(edges) => deleteEdges(edges.map((edge) => edge.id))}
       onNodesDelete={(nodes) => deleteNodes(nodes.map((node) => node.id))}
       onPaneClick={() => setSelection([])}
       selectionOnDrag

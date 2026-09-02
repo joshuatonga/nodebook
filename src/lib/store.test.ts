@@ -84,6 +84,19 @@ describe("workspace store", () => {
     expect(useWorkspaceStore.getState().workspace.nodes["trace-open"]).toBeDefined();
   });
 
+  it("deletes connections and restores them on undo", () => {
+    useWorkspaceStore.getState().deleteEdges(["edge-log-food"]);
+
+    expect(useWorkspaceStore.getState().workspace.edges["edge-log-food"]).toBeUndefined();
+    expect(useWorkspaceStore.getState().workspace.activity[0]).toMatchObject({
+      action: "edges_deleted",
+      summary: "Deleted 1 connection.",
+    });
+
+    useWorkspaceStore.temporal.getState().undo();
+    expect(useWorkspaceStore.getState().workspace.edges["edge-log-food"]).toBeDefined();
+  });
+
   it("ignores equivalent selection and viewport feedback", () => {
     let notifications = 0;
     useWorkspaceStore.getState().setSelection(["feature-food"]);

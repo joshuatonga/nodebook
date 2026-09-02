@@ -46,6 +46,7 @@ interface WorkspaceStore {
   updateNodePositions: (updates: Array<{ id: string; position: CanvasNode["position"] }>) => void;
   addManualNode: () => string | null;
   connectNodes: (source: string, target: string) => void;
+  deleteEdges: (edgeIds: string[]) => void;
   deleteNodes: (nodeIds: string[]) => void;
   acceptAllProposed: () => void;
   addHumanEvidence: (nodeId: string, evidence: Omit<Evidence, "id" | "addedBy" | "createdAt">) => void;
@@ -437,6 +438,20 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
             source: "human",
             action: "nodes_connected",
             summary: `Connected ${sourceNode.title} to ${targetNode.title}.`,
+          }),
+        });
+      },
+
+      deleteEdges: (edgeIds) => {
+        const existing = [...new Set(edgeIds)].filter((id) => get().workspace.edges[id]);
+        if (existing.length === 0) return;
+        const next = cloneDocument(get().workspace);
+        for (const edgeId of existing) delete next.edges[edgeId];
+        set({
+          workspace: withActivity(next, {
+            source: "human",
+            action: "edges_deleted",
+            summary: `Deleted ${existing.length} ${existing.length === 1 ? "connection" : "connections"}.`,
           }),
         });
       },
